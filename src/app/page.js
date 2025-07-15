@@ -1,102 +1,146 @@
 import Image from "next/image";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-base-100">
+      {/* Hero Section */}
+      <div className="hero min-h-screen bg-sudan-gradient">
+        <div className="hero-overlay bg-opacity-60"></div>
+        <div className="hero-content text-center text-white">
+          <div className="max-w-md">
+            <h1 className="mb-5 text-5xl font-bold">
+              🇸🇩 Sudan Passport Renewal
+            </h1>
+            <p className="mb-5 text-lg">
+              Streamlined, secure, and efficient passport renewal system for Sudanese citizens.
+              Apply online with face recognition and document validation.
+            </p>
+            <button className="btn btn-sudan mr-4">
+              Start Application
+            </button>
+            <button className="btn btn-outline btn-white">
+              Check Status
+            </button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+      </div>
+
+      {/* Features Section */}
+      <div className="py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12 text-sudan-gradient">
+            System Features
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="card-sudan">
+              <div className="card-body items-center text-center">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">📷</span>
+                </div>
+                <h3 className="card-title text-primary">Face Recognition</h3>
+                <p>Advanced AI-powered face detection and validation for secure identity verification.</p>
+                <div className="badge badge-success mt-2">AI Powered</div>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="card-sudan">
+              <div className="card-body items-center text-center">
+                <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">📄</span>
+                </div>
+                <h3 className="card-title text-secondary">Document Validation</h3>
+                <p>Automatic passport document scanning and verification using computer vision.</p>
+                <div className="badge badge-info mt-2">CV Technology</div>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="card-sudan">
+              <div className="card-body items-center text-center">
+                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
+                  <span className="text-2xl">⚡</span>
+                </div>
+                <h3 className="card-title text-accent">Fast Processing</h3>
+                <p>Multi-step form with real-time validation and instant feedback for users.</p>
+                <div className="badge badge-warning mt-2">Real-time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Test DaisyUI Components */}
+      <div className="py-16 px-4 bg-base-200">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Component Test (Development Only)
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Form Components */}
+            <div className="card-sudan">
+              <div className="card-body">
+                <h3 className="card-title">Form Components</h3>
+                <div className="space-y-4">
+                  <input 
+                    type="text" 
+                    placeholder="Sudan input field" 
+                    className="input-sudan" 
+                  />
+                  <select className="select-sudan">
+                    <option>Select location</option>
+                    <option>Khartoum</option>
+                    <option>Omdurman</option>
+                    <option>Kassala</option>
+                  </select>
+                  <textarea 
+                    placeholder="Comments..." 
+                    className="textarea-sudan" 
+                    rows="3"
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Components */}
+            <div className="card-sudan">
+              <div className="card-body">
+                <h3 className="card-title">Status Indicators</h3>
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="status-badge status-pending">Pending</span>
+                    <span className="status-badge status-processing">Processing</span>
+                    <span className="status-badge status-approved">Approved</span>
+                    <span className="status-badge status-rejected">Rejected</span>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <button className="btn-sudan">Primary Action</button>
+                    <button className="btn-sudan-outline">Secondary</button>
+                  </div>
+                  
+                  <div className="alert alert-success">
+                    <span>✅ DaisyUI + Tailwind CSS working perfectly!</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="footer footer-center p-10 bg-primary text-primary-content">
+        <div>
+          <p className="font-bold text-lg">
+            Sudan Passport Renewal System
+          </p>
+          <p>Republic of Sudan - Ministry of Interior</p>
+          <p>Secure • Efficient • Digital</p>
+        </div>
       </footer>
     </div>
   );

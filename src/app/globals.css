@@ -1,26 +1,191 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  body {
+    @apply bg-base-100 text-base-content;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  * {
+    @apply border-border;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* Sudan Government UI Components */
+  .btn-sudan {
+    @apply btn bg-sudan-red hover:bg-sudan-red/90 text-white border-none shadow-lg;
+  }
+  
+  .btn-sudan-outline {
+    @apply btn btn-outline border-sudan-red text-sudan-red hover:bg-sudan-red hover:text-white;
+  }
+  
+  .card-sudan {
+    @apply card bg-base-100 shadow-lg border border-base-300 hover:shadow-xl transition-shadow;
+  }
+  
+  .input-sudan {
+    @apply input input-bordered w-full focus:border-sudan-red focus:outline-none;
+  }
+  
+  .textarea-sudan {
+    @apply textarea textarea-bordered w-full focus:border-sudan-red focus:outline-none;
+  }
+  
+  .select-sudan {
+    @apply select select-bordered w-full focus:border-sudan-red focus:outline-none;
+  }
+
+  /* Camera and Image Validation */
+  .camera-preview {
+    @apply rounded-lg border-2 border-dashed border-base-300 bg-base-200 p-4;
+  }
+  
+  .camera-container {
+    @apply relative w-full max-w-2xl mx-auto;
+  }
+  
+  .validation-overlay {
+    @apply absolute inset-0 pointer-events-none z-10;
+  }
+  
+  .validation-success {
+    @apply border-success bg-success/10 animate-pulse;
+  }
+  
+  .validation-error {
+    @apply border-error bg-error/10 animate-pulse;
+  }
+  
+  .validation-loading {
+    @apply border-warning bg-warning/10 animate-pulse-slow;
+  }
+
+  /* Face Detection */
+  .face-detection-box {
+    @apply border-2 border-success rounded-lg bg-success/10;
+  }
+  
+  .document-detection-box {
+    @apply border-2 border-info rounded bg-info/10;
+  }
+
+  /* Form Steps */
+  .step-indicator {
+    @apply flex items-center space-x-4;
+  }
+  
+  .step-item {
+    @apply flex items-center space-x-2 text-sm;
+  }
+  
+  .step-item.active {
+    @apply text-primary font-medium;
+  }
+  
+  .step-item.completed {
+    @apply text-success;
+  }
+  
+  .step-item.pending {
+    @apply text-base-content/50;
+  }
+
+  /* Dashboard Components */
+  .dashboard-card {
+    @apply card-sudan p-6;
+  }
+  
+  .status-badge {
+    @apply badge font-medium;
+  }
+  
+  .status-pending {
+    @apply badge-warning;
+  }
+  
+  .status-approved {
+    @apply badge-success;
+  }
+  
+  .status-rejected {
+    @apply badge-error;
+  }
+  
+  .status-processing {
+    @apply badge-info;
+  }
+
+  /* Loading States */
+  .loading-shimmer {
+    @apply bg-gradient-to-r from-base-200 via-base-300 to-base-200 bg-[length:200%_100%] animate-pulse;
+  }
+}
+
+@layer utilities {
+  .text-sudan-gradient {
+    @apply bg-gradient-to-r from-sudan-red to-sudan-blue bg-clip-text text-transparent;
+  }
+  
+  .bg-sudan-gradient {
+    @apply bg-gradient-to-r from-sudan-red to-sudan-blue;
+  }
+  
+  .border-sudan-gradient {
+    @apply border-2 border-transparent bg-gradient-to-r from-sudan-red to-sudan-blue bg-clip-border;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    @apply animate-fade-in;
+  }
+  
+  .animate-slide-up {
+    @apply animate-slide-up;
+  }
+  
+  .animate-pulse-slow {
+    @apply animate-pulse-slow;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-base-200;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-base-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-base-content/20;
+}
+
+/* Print styles for official documents */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    @apply text-black bg-white;
+  }
 }
