@@ -1,145 +1,316 @@
-import Image from "next/image";
+'use client';
 
-export default function HomePage() {
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+
+export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Redirect logged-in users to dashboard
+  useEffect(() => {
+    if (session && status !== 'loading') {
+      router.push('/dashboard');
+    }
+  }, [session, status, router]);
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sudan-red"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-base-100">
-      {/* Hero Section */}
-      <div className="hero min-h-screen bg-sudan-gradient">
-        <div className="hero-overlay bg-opacity-60"></div>
-        <div className="hero-content text-center text-white">
-          <div className="max-w-md">
-            <h1 className="mb-5 text-5xl font-bold">
-              🇸🇩 Sudan Passport Renewal
-            </h1>
-            <p className="mb-5 text-lg">
-              Streamlined, secure, and efficient passport renewal system for Sudanese citizens.
-              Apply online with face recognition and document validation.
-            </p>
-            <button className="btn btn-sudan mr-4">
-              Start Application
-            </button>
-            <button className="btn btn-outline btn-white">
-              Check Status
-            </button>
+    <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="bg-white shadow-lg border-b-2 border-sudan-red">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-sudan-red rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-xl">🇸🇩</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Sudan Passport Services</h1>
+                <p className="text-xs text-gray-600">Ministry of Interior</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <button className="text-gray-600 hover:text-gray-900">
+                العربية
+              </button>
+              <Link href="/auth/login" className="btn-sudan-outline">
+                Login
+              </Link>
+              <Link href="/auth/register" className="btn-sudan">
+                Apply Now
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-sudan-red/10 via-white to-sudan-blue/10 py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
+                Renew Your <span className="text-sudan-gradient">Sudanese Passport</span> Online
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+                Fast, secure, and convenient passport renewal service. 
+                Complete your application from anywhere, with AI-powered document validation 
+                and real-time status tracking.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/auth/register" className="btn-sudan text-lg px-8 py-4">
+                  Start Application
+                </Link>
+                <Link href="/auth/login" className="btn-sudan-outline text-lg px-8 py-4">
+                  Track Status
+                </Link>
+              </div>
+              
+              {/* Quick Stats */}
+              <div className="grid grid-cols-3 gap-6 mt-12">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-sudan-red">7-14</div>
+                  <div className="text-sm text-gray-600">Days Processing</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-sudan-blue">99.9%</div>
+                  <div className="text-sm text-gray-600">Uptime</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">24/7</div>
+                  <div className="text-sm text-gray-600">Online Access</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="card-sudan p-8">
+                <h3 className="text-2xl font-semibold mb-6 text-center">Quick Application</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center text-white text-sm">1</div>
+                    <span>Fill Personal Information</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center text-white text-sm">2</div>
+                    <span>Upload Required Documents</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center text-white text-sm">3</div>
+                    <span>AI Document Validation</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center text-white text-sm">4</div>
+                    <span>Pay Processing Fee</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center text-white text-sm">5</div>
+                    <span>Track & Collect</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <div className="py-16 px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12 text-sudan-gradient">
-            System Features
-          </h2>
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Advanced Features for Modern Citizens
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Experience the future of government services with our cutting-edge passport renewal system
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <div className="card-sudan">
-              <div className="card-body items-center text-center">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">📷</span>
-                </div>
-                <h3 className="card-title text-primary">Face Recognition</h3>
-                <p>Advanced AI-powered face detection and validation for secure identity verification.</p>
-                <div className="badge badge-success mt-2">AI Powered</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* AI Document Validation */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-sudan-red/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">🤖</span>
               </div>
+              <h3 className="text-xl font-semibold mb-4">AI Document Validation</h3>
+              <p className="text-gray-600">
+                Advanced AI technology automatically validates your documents, 
+                reducing processing time and ensuring accuracy.
+              </p>
             </div>
 
-            {/* Feature 2 */}
-            <div className="card-sudan">
-              <div className="card-body items-center text-center">
-                <div className="w-16 h-16 bg-secondary/10 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">📄</span>
-                </div>
-                <h3 className="card-title text-secondary">Document Validation</h3>
-                <p>Automatic passport document scanning and verification using computer vision.</p>
-                <div className="badge badge-info mt-2">CV Technology</div>
+            {/* Face Recognition */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-sudan-blue/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">📸</span>
               </div>
+              <h3 className="text-xl font-semibold mb-4">Smart Photo Capture</h3>
+              <p className="text-gray-600">
+                Real-time face detection and validation ensures your passport photo 
+                meets all government requirements.
+              </p>
             </div>
 
-            {/* Feature 3 */}
-            <div className="card-sudan">
-              <div className="card-body items-center text-center">
-                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <h3 className="card-title text-accent">Fast Processing</h3>
-                <p>Multi-step form with real-time validation and instant feedback for users.</p>
-                <div className="badge badge-warning mt-2">Real-time</div>
+            {/* Real-time Tracking */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">📍</span>
               </div>
+              <h3 className="text-xl font-semibold mb-4">Real-time Tracking</h3>
+              <p className="text-gray-600">
+                Track your application status in real-time with notifications 
+                and updates throughout the process.
+              </p>
+            </div>
+
+            {/* Secure Processing */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">🔒</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Bank-level Security</h3>
+              <p className="text-gray-600">
+                Your personal information is protected with enterprise-grade 
+                encryption and security protocols.
+              </p>
+            </div>
+
+            {/* Mobile Optimized */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">📱</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4">Mobile Optimized</h3>
+              <p className="text-gray-600">
+                Complete your application on any device with our responsive 
+                design and mobile-first approach.
+              </p>
+            </div>
+
+            {/* 24/7 Support */}
+            <div className="card-sudan p-8 text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">🆘</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-4">24/7 Support</h3>
+              <p className="text-gray-600">
+                Get help whenever you need it with our round-the-clock 
+                customer support and comprehensive FAQ system.
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Test DaisyUI Components */}
-      <div className="py-16 px-4 bg-base-200">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Component Test (Development Only)
+      {/* Demo Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+            Try the Demo
           </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Form Components */}
-            <div className="card-sudan">
-              <div className="card-body">
-                <h3 className="card-title">Form Components</h3>
-                <div className="space-y-4">
-                  <input 
-                    type="text" 
-                    placeholder="Sudan input field" 
-                    className="input-sudan" 
-                  />
-                  <select className="select-sudan">
-                    <option>Select location</option>
-                    <option>Khartoum</option>
-                    <option>Omdurman</option>
-                    <option>Kassala</option>
-                  </select>
-                  <textarea 
-                    placeholder="Comments..." 
-                    className="textarea-sudan" 
-                    rows="3"
-                  ></textarea>
-                </div>
+          <p className="text-xl text-gray-600 mb-8">
+            Experience our passport renewal system with a live demo account.
+          </p>
+          <div className="bg-white p-8 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Demo Account Credentials</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <div className="bg-gray-100 p-3 rounded border font-mono">demo@passport.gov.sd</div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <div className="bg-gray-100 p-3 rounded border font-mono">Demo123456!</div>
               </div>
             </div>
-
-            {/* Status Components */}
-            <div className="card-sudan">
-              <div className="card-body">
-                <h3 className="card-title">Status Indicators</h3>
-                <div className="space-y-4">
-                  <div className="flex flex-wrap gap-2">
-                    <span className="status-badge status-pending">Pending</span>
-                    <span className="status-badge status-processing">Processing</span>
-                    <span className="status-badge status-approved">Approved</span>
-                    <span className="status-badge status-rejected">Rejected</span>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <button className="btn-sudan">Primary Action</button>
-                    <button className="btn-sudan-outline">Secondary</button>
-                  </div>
-                  
-                  <div className="alert alert-success">
-                    <span>✅ DaisyUI + Tailwind CSS working perfectly!</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <Link href="/auth/login" className="btn-sudan mt-6">
+              Try Demo Login
+            </Link>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-sudan-red to-sudan-blue">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl lg:text-4xl font-bold text-white mb-6">
+            Ready to Renew Your Passport?
+          </h2>
+          <p className="text-xl text-white/90 mb-8">
+            Join thousands of satisfied citizens who have used our secure, 
+            efficient passport renewal service.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/register" className="bg-white text-sudan-red hover:bg-gray-50 px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+              Start Your Application
+            </Link>
+            <Link href="/auth/login" className="border-2 border-white text-white hover:bg-white hover:text-sudan-red px-8 py-4 rounded-lg font-semibold text-lg transition-colors">
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
-      <footer className="footer footer-center p-10 bg-primary text-primary-content">
-        <div>
-          <p className="font-bold text-lg">
-            Sudan Passport Renewal System
-          </p>
-          <p>Republic of Sudan - Ministry of Interior</p>
-          <p>Secure • Efficient • Digital</p>
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-8 h-8 bg-sudan-red rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold">🇸🇩</span>
+                </div>
+                <span className="text-lg font-semibold">Sudan Passport Services</span>
+              </div>
+              <p className="text-gray-400">
+                Official government portal for passport renewal services.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Services</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>Passport Renewal</li>
+                <li>New Passport Application</li>
+                <li>Passport Replacement</li>
+                <li>Status Tracking</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>Help Center</li>
+                <li>Contact Us</li>
+                <li>FAQ</li>
+                <li>Technical Support</li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>Privacy Policy</li>
+                <li>Terms of Service</li>
+                <li>Security Policy</li>
+                <li>Accessibility</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2024 Republic of Sudan - Ministry of Interior. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
