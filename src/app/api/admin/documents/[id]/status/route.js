@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.js';
-import { Document } from '@/models/Document.js';
+import Document from '@/models/Document.js';
 import { createAuditLog } from '@/lib/auditLog.js';
 
 // PATCH /api/admin/documents/[id]/status - Update document validation status

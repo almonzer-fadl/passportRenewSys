@@ -3,7 +3,7 @@ import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth.js';
-import { Document } from '@/models/Document.js';
+import Document from '@/models/Document.js';
 
 export async function POST(request) {
   try {
