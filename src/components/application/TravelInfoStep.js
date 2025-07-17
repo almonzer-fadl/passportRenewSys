@@ -268,7 +268,7 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
             <h3 className="text-sm font-medium text-blue-800">Travel Information Notice</h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Travel dates are for informational purposes and don't affect passport validity</li>
+                <li>Travel dates are for informational purposes and don&apos;t affect passport validity</li>
                 <li>Your new passport will be valid for 10 years from the issue date</li>
                 <li>Some countries require passports to be valid for 6+ months beyond travel dates</li>
                 <li>Check visa requirements for your intended destinations</li>

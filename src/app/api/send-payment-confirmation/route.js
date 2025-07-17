@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../lib/auth.js';
-import { User } from '../../../models/User.js';
-import { Application } from '../../../models/Application.js';
-import emailService from '../../../lib/emailService.js';
+import { authOptions } from '@/lib/auth.js';
+import { User } from '@/models/User.js';
+import { Application } from '@/models/Application.js';
+import emailService from '@/lib/emailService.js';
 
 export async function POST(request) {
   try {

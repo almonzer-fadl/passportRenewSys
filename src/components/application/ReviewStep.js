@@ -329,7 +329,7 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
             <div className="mt-2 text-sm text-blue-700">
               <ol className="list-decimal list-inside space-y-1">
                 <li>Your application will be submitted and assigned a tracking number</li>
-                <li>You'll receive an email confirmation with your application number</li>
+                <li>You&apos;ll receive an email confirmation with your application number</li>
                 <li>Upload required documents through your dashboard</li>
                 <li>Wait for application review (typically 2-3 business days)</li>
                 <li>Complete payment once your application is approved</li>

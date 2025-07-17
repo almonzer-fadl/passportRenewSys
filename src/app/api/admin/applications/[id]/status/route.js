@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../auth/[...nextauth]/route';
-import { Application } from '../../../../../../models/Application.js';
-import { User } from '../../../../../../models/User.js';
-import { createAuditLog } from '../../../../../../lib/auditLog.js';
-import emailService from '../../../../../../lib/emailService.js';
-import getDatabase from '../../../../../../lib/database.js';
+import { authOptions } from '@/lib/auth.js';
+import { Application } from '@/models/Application.js';
+import { User } from '@/models/User.js';
+import { createAuditLog } from '@/lib/auditLog.js';
+import emailService from '@/lib/emailService.js';
+import getDatabase from '@/lib/database.js';
 
 const db = getDatabase();
 

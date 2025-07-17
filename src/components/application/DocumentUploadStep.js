@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 export default function DocumentUploadStep({ formData, updateFormData, errors }) {
   const [dragOver, setDragOver] = useState({});
@@ -127,10 +128,12 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {formData[`${field}Preview`] && formData[field]?.type?.startsWith('image/') ? (
-                <img
+                <Image
                   src={formData[`${field}Preview`]}
                   alt="Preview"
-                  className="w-16 h-16 object-cover rounded border"
+                  width={64}
+                  height={64}
+                  className="object-cover rounded border"
                 />
               ) : (
                 <div className="w-16 h-16 bg-gray-100 rounded border flex items-center justify-center">

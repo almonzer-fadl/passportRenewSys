@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -38,13 +38,7 @@ export default function AdminDashboard() {
   }, [session, status, router]);
 
   // Fetch applications
-  useEffect(() => {
-    if (session?.user?.email === 'demo@passport.gov.sd') {
-      fetchApplications();
-    }
-  }, [session, filters]);
-
-  const fetchApplications = async () => {
+  const fetchApplications = useCallback(async () => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams();
@@ -64,7 +58,13 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, stats]);
+
+  useEffect(() => {
+    if (session?.user?.email === 'demo@passport.gov.sd') {
+      fetchApplications();
+    }
+    }, [session, fetchApplications]);
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {

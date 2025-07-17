@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { User } from '../../../../models/User.js';
-import { createAuditLog } from '../../../../lib/auditLog.js';
+import { User } from '@/models/User.js';
+import { createAuditLog } from '@/lib/auditLog.js';
 
 export async function POST(request) {
   try {

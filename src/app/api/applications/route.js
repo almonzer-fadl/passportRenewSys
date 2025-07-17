@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../lib/auth.js';
-import { Application } from '../../../models/Application.js';
-import { User } from '../../../models/User.js';
-import { createAuditLog } from '../../../lib/auditLog.js';
-import emailService from '../../../lib/emailService.js';
+import { authOptions } from '@/lib/auth.js';
+import { Application } from '@/models/Application.js';
+import { User } from '@/models/User.js';
+import { createAuditLog } from '@/lib/auditLog.js';
+import emailService from '@/lib/emailService.js';
 
 // GET /api/applications - Get user's applications
 export async function GET(request) {
@@ -98,18 +98,23 @@ export async function POST(request) {
     const newApplication = Application.create(applicationData);
 
     // Log application creation
-    await createAuditLog({
-      userId: session.user.id,
-      action: 'APPLICATION_CREATED',
-      resourceType: 'application',
-      resourceId: newApplication.id,
-      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-      userAgent: request.headers.get('user-agent') || 'unknown',
-      details: { 
-        applicationNumber: newApplication.applicationNumber,
-        applicationType: newApplication.applicationType
-      }
-    });
+    try {
+      await createAuditLog({
+        userId: session.user.id,
+        action: 'APPLICATION_CREATED',
+        resourceType: 'application',
+        resourceId: newApplication.id,
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        details: { 
+          applicationNumber: newApplication.applicationNumber,
+          applicationType: newApplication.applicationType
+        }
+      });
+    } catch (auditError) {
+      console.error('Failed to create audit log:', auditError);
+      // Don't fail the application creation if audit log fails
+    }
 
     // Send confirmation email
     try {

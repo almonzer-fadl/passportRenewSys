@@ -15,10 +15,12 @@ export {
 };
 
 // Default export for convenience
-export default {
+const models = {
   User,
   Application,
   Document,
   Payment,
   AuditLog
-}; 
+};
+
+export default models; 

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../auth/[...nextauth]/route.js';
-import { User } from '../../../../models/User.js';
-import { createAuditLog } from '../../../../lib/auditLog.js';
+import { authOptions } from '@/lib/auth.js';
+import { User } from '@/models/User.js';
+import { createAuditLog } from '@/lib/auditLog.js';
 
 // GET /api/user/profile - Get user profile
 export async function GET(request) {

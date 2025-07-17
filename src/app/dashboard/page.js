@@ -250,7 +250,7 @@ export default function DashboardPage() {
                 </div>
                 <h4 className="text-lg font-medium text-gray-900 mb-2">No Applications Yet</h4>
                 <p className="text-gray-600 mb-4">
-                  You haven't submitted any passport renewal applications yet.
+                  You haven&apos;t submitted any passport renewal applications yet.
                 </p>
                 <Link href="/apply" className="btn-sudan">
                   Start New Application
