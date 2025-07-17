@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../../auth/[...nextauth]/route.js';
+import { authOptions } from '../../../../auth/[...nextauth]/route';
 import { Application } from '../../../../../../models/Application.js';
 import { User } from '../../../../../../models/User.js';
 import { createAuditLog } from '../../../../../../lib/auditLog.js';
