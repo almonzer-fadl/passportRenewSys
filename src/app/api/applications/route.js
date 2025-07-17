@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth.js';
 import { Application } from '../../../models/Application.js';
+import { User } from '../../../models/User.js';
 import { createAuditLog } from '../../../lib/auditLog.js';
+import emailService from '../../../lib/emailService.js';
 
 // GET /api/applications - Get user's applications
 export async function GET(request) {
@@ -108,6 +110,17 @@ export async function POST(request) {
         applicationType: newApplication.applicationType
       }
     });
+
+    // Send confirmation email
+    try {
+      const user = User.findById(session.user.id);
+      if (user && user.email) {
+        await emailService.sendApplicationSubmissionEmail(newApplication, user);
+      }
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError);
+      // Don't fail the application creation if email fails
+    }
 
     return NextResponse.json(
       {

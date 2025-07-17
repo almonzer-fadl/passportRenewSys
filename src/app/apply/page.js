@@ -11,6 +11,8 @@ import PersonalInfoStep from '../../components/application/PersonalInfoStep';
 import ContactInfoStep from '../../components/application/ContactInfoStep';
 import EmergencyContactStep from '../../components/application/EmergencyContactStep';
 import TravelInfoStep from '../../components/application/TravelInfoStep';
+import DocumentUploadStep from '../../components/application/DocumentUploadStep';
+import PaymentStep from '../../components/application/PaymentStep';
 import ReviewStep from '../../components/application/ReviewStep';
 
 export default function ApplyPage() {
@@ -62,6 +64,23 @@ export default function ApplyPage() {
       intendedCountries: [],
       departureDate: '',
       returnDate: ''
+    },
+    documents: {
+      passportPhoto: null,
+      passportPhotoPreview: null,
+      passportPhotoName: null,
+      identityDocument: null,
+      identityDocumentPreview: null,
+      identityDocumentName: null,
+      citizenshipDocument: null,
+      citizenshipDocumentPreview: null,
+      citizenshipDocumentName: null,
+      supportingDocument: null,
+      supportingDocumentPreview: null,
+      supportingDocumentName: null,
+      currentPassportCopy: null,
+      currentPassportCopyPreview: null,
+      currentPassportCopyName: null
     }
   });
   const [errors, setErrors] = useState({});
@@ -95,7 +114,9 @@ export default function ApplyPage() {
     { number: 4, title: 'Contact Information', component: ContactInfoStep },
     { number: 5, title: 'Emergency Contact', component: EmergencyContactStep },
     { number: 6, title: 'Travel Information', component: TravelInfoStep },
-    { number: 7, title: 'Review & Submit', component: ReviewStep }
+    { number: 7, title: 'Document Upload', component: DocumentUploadStep },
+    { number: 8, title: 'Payment', component: PaymentStep },
+    { number: 9, title: 'Review & Submit', component: ReviewStep }
   ];
 
   // Filter steps based on conditions
@@ -159,6 +180,23 @@ export default function ApplyPage() {
         if (!formData.travelPurpose) newErrors.travelPurpose = 'Travel purpose is required';
         if (!formData.travelCountries || formData.travelCountries.length === 0) {
           newErrors.travelCountries = 'At least one travel country is required';
+        }
+        break;
+      
+      case 7: // Document Upload
+        if (!formData.passportPhoto) newErrors.passportPhoto = 'Passport photo is required';
+        if (!formData.identityDocument) newErrors.identityDocument = 'Identity document is required';
+        if (!formData.citizenshipDocument) newErrors.citizenshipDocument = 'Proof of citizenship is required';
+        
+        // Current passport copy required for renewal/replacement/correction
+        if (['renewal', 'replacement', 'correction'].includes(formData.applicationType) && !formData.currentPassportCopy) {
+          newErrors.currentPassportCopy = 'Current passport copy is required';
+        }
+        break;
+      
+      case 8: // Payment
+        if (!formData.paymentCompleted) {
+          newErrors.payment = 'Payment must be completed before proceeding';
         }
         break;
     }
