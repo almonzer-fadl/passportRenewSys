@@ -2,18 +2,41 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [submittedAppNumber, setSubmittedAppNumber] = useState(null);
 
   useEffect(() => {
     if (session) {
       fetchApplications();
     }
   }, [session]);
+
+  // Check for success message from application submission
+  useEffect(() => {
+    const submitted = searchParams.get('submitted');
+    if (submitted) {
+      setSubmittedAppNumber(submitted);
+      setShowSuccessMessage(true);
+      
+      // Remove the query parameter from URL without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      // Hide success message after 10 seconds
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 10000);
+    }
+  }, [searchParams]);
 
   const fetchApplications = async () => {
     try {
@@ -30,39 +53,54 @@ export default function DashboardPage() {
   };
 
   const getStatusBadge = (status) => {
-    const statusClasses = {
-      draft: 'status-pending',
-      submitted: 'status-processing',
-      documents_uploaded: 'status-processing',
-      under_review: 'status-processing',
-      pending_payment: 'status-pending',
-      payment_confirmed: 'status-processing',
-      in_processing: 'status-processing',
-      ready_for_collection: 'status-approved',
-      completed: 'status-approved',
-      rejected: 'status-rejected',
-      cancelled: 'status-rejected'
+    const statusConfig = {
+      'draft': { color: 'gray', label: 'Draft', icon: '📝' },
+      'submitted': { color: 'blue', label: 'Submitted', icon: '📤' },
+      'under_review': { color: 'yellow', label: 'Under Review', icon: '👀' },
+      'approved': { color: 'green', label: 'Approved', icon: '✅' },
+      'rejected': { color: 'red', label: 'Rejected', icon: '❌' },
+      'completed': { color: 'purple', label: 'Completed', icon: '🎉' }
     };
 
-    const statusLabels = {
-      draft: 'Draft',
-      submitted: 'Submitted',
-      documents_uploaded: 'Documents Uploaded',
-      under_review: 'Under Review',
-      pending_payment: 'Pending Payment',
-      payment_confirmed: 'Payment Confirmed',
-      in_processing: 'Processing',
-      ready_for_collection: 'Ready for Collection',
-      completed: 'Completed',
-      rejected: 'Rejected',
-      cancelled: 'Cancelled'
-    };
-
+    const config = statusConfig[status] || statusConfig['draft'];
+    
     return (
-      <span className={`status-badge ${statusClasses[status] || 'status-pending'}`}>
-        {statusLabels[status] || status}
-      </span>
+      <div className="flex items-center space-x-2">
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+          ${config.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
+          ${config.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
+          ${config.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
+          ${config.color === 'green' ? 'bg-green-100 text-green-800' : ''}
+          ${config.color === 'red' ? 'bg-red-100 text-red-800' : ''}
+          ${config.color === 'purple' ? 'bg-purple-100 text-purple-800' : ''}
+        `}>
+          <span className="mr-1">{config.icon}</span>
+          {config.label}
+        </span>
+      </div>
     );
+  };
+
+  const getStatusProgress = (status) => {
+    const statusOrder = ['submitted', 'under_review', 'approved', 'completed'];
+    const currentIndex = statusOrder.indexOf(status);
+    
+    if (currentIndex === -1) return 0;
+    return ((currentIndex + 1) / statusOrder.length) * 100;
+  };
+
+  const getExpectedTimeline = (processingSpeed, status) => {
+    const isExpress = processingSpeed === 'express';
+    const baseDays = isExpress ? 7 : 14;
+    
+    const timelines = {
+      'submitted': 'Application received and queued for review',
+      'under_review': `Expected completion in ${baseDays - 3} days`,
+      'approved': `Processing passport - ${Math.ceil(baseDays / 2)} days remaining`,
+      'completed': 'Ready for collection'
+    };
+    
+    return timelines[status] || 'Processing...';
   };
 
   if (status === 'loading') {
@@ -91,6 +129,14 @@ export default function DashboardPage() {
               <span className="text-sm text-gray-700">
                 Welcome, {session?.user?.firstName || session?.user?.name}
               </span>
+              {session?.user?.email === 'demo@passport.gov.sd' && (
+                <Link
+                  href="/admin"
+                  className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm hover:bg-purple-700"
+                >
+                  Admin Dashboard
+                </Link>
+              )}
               <button
                 onClick={() => signOut()}
                 className="btn-sudan-outline text-sm"
@@ -104,6 +150,38 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        {/* Success Message */}
+        {showSuccessMessage && submittedAppNumber && (
+          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-green-800">
+                  Application Submitted Successfully! 🎉
+                </h3>
+                <div className="mt-2 text-sm text-green-700">
+                  <p>
+                    Your passport application <strong>{submittedAppNumber}</strong> has been submitted successfully.
+                    You will receive email notifications as your application progresses.
+                  </p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={() => setShowSuccessMessage(false)}
+                    className="text-green-800 hover:text-green-900 text-sm font-medium"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -179,32 +257,120 @@ export default function DashboardPage() {
                 </Link>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {applications.map((app) => (
-                  <div key={app._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-lg font-medium text-gray-900">
-                          Application #{app.applicationNumber}
-                        </h4>
-                        <p className="text-gray-600 text-sm mt-1">
-                          {app.applicationType} • {app.processingType} processing
-                        </p>
-                        <p className="text-gray-500 text-xs mt-1">
-                          Submitted: {new Date(app.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
+                  <div key={app.id || app._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                    {/* Application Header */}
+                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900">
+                            Application #{app.application_number || app.applicationNumber}
+                          </h4>
+                          <div className="flex items-center space-x-4 mt-1">
+                            <span className="text-sm text-gray-600">
+                              {app.application_type === 'new' ? 'New Passport' :
+                               app.application_type === 'renewal' ? 'Passport Renewal' :
+                               app.application_type === 'replacement' ? 'Passport Replacement' :
+                               app.applicationType || 'Passport Application'}
+                            </span>
+                            <span className="text-sm text-gray-500">•</span>
+                            <span className="text-sm text-gray-600">
+                              {app.processing_speed === 'express' || app.processingType === 'express' 
+                                ? 'Express Processing' 
+                                : 'Regular Processing'}
+                            </span>
+                          </div>
+                        </div>
                         {getStatusBadge(app.status)}
-                        <div className="mt-2">
-                          <Link 
-                            href={`/applications/${app._id}`}
-                            className="text-sudan-red hover:text-sudan-red/80 text-sm font-medium"
-                          >
-                            View Details →
-                          </Link>
+                      </div>
+                    </div>
+
+                    {/* Application Body */}
+                    <div className="px-6 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Left Column - Application Details */}
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Submitted:</span>
+                            <span className="text-gray-900">
+                              {new Date(app.created_at || app.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Total Fee:</span>
+                            <span className="text-gray-900 font-medium">
+                              ${app.total_fee || 'Calculating...'}
+                            </span>
+                          </div>
+
+                          {app.travel_purpose && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Travel Purpose:</span>
+                              <span className="text-gray-900">{app.travel_purpose}</span>
+                            </div>
+                          )}
+
+                          {app.reviewed_at && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-600">Last Updated:</span>
+                              <span className="text-gray-900">
+                                {new Date(app.reviewed_at).toLocaleDateString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right Column - Progress & Timeline */}
+                        <div className="space-y-3">
+                          {/* Progress Bar */}
+                          <div>
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="text-gray-600">Progress</span>
+                              <span className="text-gray-900">{Math.round(getStatusProgress(app.status))}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${getStatusProgress(app.status)}%` }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Expected Timeline */}
+                          <div className="bg-blue-50 rounded-lg p-3">
+                            <p className="text-xs font-medium text-blue-800 mb-1">Expected Timeline</p>
+                            <p className="text-sm text-blue-700">
+                              {getExpectedTimeline(app.processing_speed || app.processingType, app.status)}
+                            </p>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex space-x-3">
+                            <Link 
+                              href={`/applications/${app.id || app._id}`}
+                              className="flex-1 text-center bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                            >
+                              View Details
+                            </Link>
+                            
+                            {app.status === 'completed' && (
+                              <button className="flex-1 text-center bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700 transition-colors">
+                                Collection Info
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
+
+                      {/* Status Notes */}
+                      {app.notes && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <p className="text-xs font-medium text-gray-700 mb-1">Review Notes:</p>
+                          <p className="text-sm text-gray-600 bg-gray-50 rounded p-2">{app.notes}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

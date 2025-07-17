@@ -67,7 +67,7 @@ export default {
     base: true,
     utils: true,
     logs: false,
-    rtl: false,
+    rtl: true,
   },
 }
 

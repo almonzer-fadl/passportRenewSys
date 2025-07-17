@@ -1,8 +1,9 @@
 import { Inter } from 'next/font/google';
 import './globals.css';
 import AuthProvider from '@/components/AuthProvider';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata = {
   title: 'Sudan Passport Renewal System',
@@ -40,8 +41,9 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+
   return (
-    <html lang="en" data-theme="sudan">
+    <html lang="en" dir="ltr" data-theme="sudan">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#D21F3C" />
@@ -64,14 +66,16 @@ export default function RootLayout({ children }) {
         <meta name="referrer" content="strict-origin-when-cross-origin" />
       </head>
       <body className={`${inter.className} antialiased bg-white text-gray-900 selection:bg-sudan-red selection:text-white`}>
-        <AuthProvider>
-          <div id="root" className="min-h-screen">
-            {children}
-          </div>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <div id="root" className="min-h-screen">
+              {children}
+            </div>
+          </AuthProvider>
+        </LanguageProvider>
         
         {/* Loading overlay for better UX */}
-        <div id="loading-overlay" className="fixed inset-0 bg-white z-50 flex items-center justify-center hidden">
+        <div id="loading-overlay" className="fixed inset-0 bg-white z-50 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-sudan-red mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>

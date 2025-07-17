@@ -4,10 +4,13 @@ import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { t } = useLanguage();
 
   // Redirect logged-in users to dashboard
   useEffect(() => {
@@ -30,24 +33,22 @@ export default function Home() {
       <nav className="bg-white shadow-lg border-b-2 border-sudan-red">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 rtl:space-x-reverse">
               <div className="w-10 h-10 bg-sudan-red rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-xl">🇸🇩</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Sudan Passport Services</h1>
-                <p className="text-xs text-gray-600">Ministry of Interior</p>
+                <h1 className="text-xl font-bold text-gray-900">{t('homepage.title')}</h1>
+                <p className="text-xs text-gray-600">{t('homepage.subtitle')}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-gray-900">
-                العربية
-              </button>
+            <div className="flex items-center space-x-4 rtl:space-x-reverse">
+              <LanguageSwitcher />
               <Link href="/auth/login" className="btn-sudan-outline">
-                Login
+                {t('navigation.login')}
               </Link>
               <Link href="/auth/register" className="btn-sudan">
-                Apply Now
+                {t('navigation.apply')}
               </Link>
             </div>
           </div>
@@ -60,19 +61,17 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6">
-                Renew Your <span className="text-sudan-gradient">Sudanese Passport</span> Online
+                {t('homepage.heroTitle')} <span className="text-sudan-gradient">{t('homepage.heroSubtitle')}</span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                Fast, secure, and convenient passport renewal service. 
-                Complete your application from anywhere, with AI-powered document validation 
-                and real-time status tracking.
+                {t('homepage.heroDescription')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 rtl:flex-row-reverse">
                 <Link href="/auth/register" className="btn-sudan text-lg px-8 py-4">
-                  Start Application
+                  {t('navigation.apply')}
                 </Link>
                 <Link href="/auth/login" className="btn-sudan-outline text-lg px-8 py-4">
-                  Track Status
+                  {t('navigation.login')}
                 </Link>
               </div>
               
@@ -129,10 +128,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-              Advanced Features for Modern Citizens
+              {t('homepage.featuresTitle')}
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Experience the future of government services with our cutting-edge passport renewal system
+              {t('homepage.featuresSubtitle')}
             </p>
           </div>
           
@@ -142,10 +141,9 @@ export default function Home() {
               <div className="w-16 h-16 bg-sudan-red/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">🤖</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">AI Document Validation</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.aiValidationTitle')}</h3>
               <p className="text-gray-600">
-                Advanced AI technology automatically validates your documents, 
-                reducing processing time and ensuring accuracy.
+                {t('homepage.aiValidationDesc')}
               </p>
             </div>
 
@@ -154,10 +152,9 @@ export default function Home() {
               <div className="w-16 h-16 bg-sudan-blue/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">📸</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Smart Photo Capture</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.faceRecognitionTitle')}</h3>
               <p className="text-gray-600">
-                Real-time face detection and validation ensures your passport photo 
-                meets all government requirements.
+                {t('homepage.faceRecognitionDesc')}
               </p>
             </div>
 
@@ -166,10 +163,9 @@ export default function Home() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">📍</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Real-time Tracking</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.realTimeTrackingTitle')}</h3>
               <p className="text-gray-600">
-                Track your application status in real-time with notifications 
-                and updates throughout the process.
+                {t('homepage.realTimeTrackingDesc')}
               </p>
             </div>
 
@@ -178,34 +174,31 @@ export default function Home() {
               <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <span className="text-3xl">🔒</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Bank-level Security</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.securePaymentsTitle')}</h3>
               <p className="text-gray-600">
-                Your personal information is protected with enterprise-grade 
-                encryption and security protocols.
+                {t('homepage.securePaymentsDesc')}
               </p>
             </div>
 
-            {/* Mobile Optimized */}
+            {/* Admin Dashboard */}
             <div className="card-sudan p-8 text-center">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">📱</span>
+                <span className="text-3xl">🎛️</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">Mobile Optimized</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.adminDashboardTitle')}</h3>
               <p className="text-gray-600">
-                Complete your application on any device with our responsive 
-                design and mobile-first approach.
+                {t('homepage.adminDashboardDesc')}
               </p>
             </div>
 
-            {/* 24/7 Support */}
+            {/* Data Protection */}
             <div className="card-sudan p-8 text-center">
               <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">🆘</span>
+                <span className="text-3xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-semibold mb-4">24/7 Support</h3>
+              <h3 className="text-xl font-semibold mb-4">{t('homepage.dataProtectionTitle')}</h3>
               <p className="text-gray-600">
-                Get help whenever you need it with our round-the-clock 
-                customer support and comprehensive FAQ system.
+                {t('homepage.dataProtectionDesc')}
               </p>
             </div>
           </div>
