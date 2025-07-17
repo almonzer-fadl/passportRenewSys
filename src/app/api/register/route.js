@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
-import { User, AuditLog } from '@/models';
+import { User } from '../../../../models/User.js';
+import { createAuditLog } from '../../../../lib/auditLog.js';
 
 export async function POST(request) {
   try {
@@ -96,92 +96,88 @@ export async function POST(request) {
       );
     }
 
-    await connectDB();
-
     // Check if user already exists
-    const existingUser = await User.findOne({
-      $or: [
-        { email: email.toLowerCase() },
-        { nationalId: nationalId }
-      ]
-    });
+    const existingUserByEmail = User.findByEmail(email.toLowerCase());
+    const existingUserByNationalId = User.findByNationalId(nationalId);
 
-    if (existingUser) {
-      const field = existingUser.email === email.toLowerCase() ? 'email' : 'national ID';
-      
-      // Log registration attempt with existing credentials
-      await AuditLog.logSecurityEvent(
-        'user_created',
-        `Registration attempt with existing ${field}: ${field === 'email' ? email : nationalId}`,
-        {
-          ipAddress: request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 'unknown',
-          userAgent: request.headers.get('user-agent') || 'unknown'
-        },
-        'medium',
-        60
-      );
+    if (existingUserByEmail) {
+      // Log registration attempt with existing email
+      await createAuditLog({
+        action: 'REGISTRATION_FAILED',
+        resourceType: 'authentication',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        details: { 
+          email: email,
+          reason: 'email_already_exists'
+        }
+      });
 
       return NextResponse.json(
-        { error: `An account with this ${field} already exists` },
+        { error: 'An account with this email already exists' },
+        { status: 409 }
+      );
+    }
+
+    if (existingUserByNationalId) {
+      // Log registration attempt with existing national ID
+      await createAuditLog({
+        action: 'REGISTRATION_FAILED',
+        resourceType: 'authentication',
+        ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown',
+        details: { 
+          nationalId: nationalId,
+          reason: 'national_id_already_exists'
+        }
+      });
+
+      return NextResponse.json(
+        { error: 'An account with this national ID already exists' },
         { status: 409 }
       );
     }
 
     // Create new user
-    const newUser = new User({
+    const userData = {
       email: email.toLowerCase(),
       password,
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       nationalId: nationalId.trim(),
-      phoneNumber: phoneNumber.trim(),
-      dateOfBirth: birthDate,
-      address: {
-        street: address.street.trim(),
-        city: address.city.trim(),
-        state: address.state.trim(),
-        postalCode: address.postalCode?.trim() || '',
-        country: 'Sudan'
-      },
-      status: 'pending', // Requires email verification
-      role: 'citizen'
-    });
+      phone: phoneNumber.trim(),
+      dateOfBirth: birthDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      address: address.street.trim(),
+      city: address.city.trim(),
+      state: address.state.trim(),
+      postalCode: address.postalCode?.trim() || '',
+      country: 'Sudan'
+    };
 
-    // Generate email verification token
-    const verificationToken = newUser.generateVerificationToken();
-    
-    await newUser.save();
+    const newUser = await User.create(userData);
 
     // Log successful registration
-    await AuditLog.logUserAction(
-      'user_created',
-      newUser._id,
-      `New user registered: ${email}`,
-      {
-        resourceType: 'user',
-        resourceId: newUser._id.toString(),
-        resourceName: newUser.fullName
-      },
-      {
-        ipAddress: request.headers.get('x-forwarded-for') || 
-                  request.headers.get('x-real-ip') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown'
+    await createAuditLog({
+      userId: newUser.id,
+      action: 'USER_REGISTERED',
+      resourceType: 'user',
+      resourceId: newUser.id,
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      details: { 
+        email: newUser.email,
+        registration_method: 'web_form'
       }
-    );
-
-    // TODO: Send verification email
-    // await sendVerificationEmail(newUser.email, verificationToken);
+    });
 
     return NextResponse.json(
       {
-        message: 'Account created successfully. Please check your email to verify your account.',
+        message: 'Account created successfully. You can now log in.',
         user: {
-          id: newUser._id,
+          id: newUser.id,
           email: newUser.email,
           firstName: newUser.firstName,
-          lastName: newUser.lastName,
-          status: newUser.status
+          lastName: newUser.lastName
         }
       },
       { status: 201 }
@@ -189,24 +185,6 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Registration error:', error);
-
-    // Log system error
-    await AuditLog.logSystemEvent(
-      'api_error',
-      `Registration API error: ${error.message}`,
-      {
-        resourceType: 'api',
-        resourceId: '/api/register'
-      },
-      'high',
-      {
-        response: {
-          statusCode: 500,
-          errorMessage: error.message
-        }
-      }
-    );
-
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },
       { status: 500 }

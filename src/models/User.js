@@ -1,251 +1,240 @@
-import mongoose from 'mongoose';
+import getDatabase, { generateId, getCurrentTimestamp } from '../lib/database.js';
 import bcrypt from 'bcryptjs';
 
-const UserSchema = new mongoose.Schema({
-  // Basic Authentication
-  email: {
-    type: String,
-    required: [true, 'Email is required'],
-    unique: true,
-    lowercase: true,
-    trim: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
-  },
-  password: {
-    type: String,
-    required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters'],
-    select: false // Don't include password in queries by default
-  },
-  
-  // Personal Information
-  firstName: {
-    type: String,
-    required: [true, 'First name is required'],
-    trim: true,
-    maxlength: [50, 'First name cannot exceed 50 characters']
-  },
-  lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true,
-    maxlength: [50, 'Last name cannot exceed 50 characters']
-  },
-  nationalId: {
-    type: String,
-    required: [true, 'National ID is required'],
-    unique: true,
-    trim: true,
-    match: [/^[0-9]{10}$/, 'National ID must be 10 digits']
-  },
-  phoneNumber: {
-    type: String,
-    required: [true, 'Phone number is required'],
-    trim: true,
-    match: [/^\+249[0-9]{9}$/, 'Phone number must be in format +249xxxxxxxxx']
-  },
-  dateOfBirth: {
-    type: Date,
-    required: [true, 'Date of birth is required'],
-    validate: {
-      validator: function(value) {
-        return value < new Date();
-      },
-      message: 'Date of birth must be in the past'
+const db = getDatabase();
+
+// User operations
+export const User = {
+  // Create a new user
+  create: async (userData) => {
+    const id = generateId();
+    const hashedPassword = await bcrypt.hash(userData.password, 12);
+    
+    const stmt = db.prepare(`
+      INSERT INTO users (
+        id, email, password, first_name, middle_name, last_name,
+        father_name, grandfather_name, mother_name, date_of_birth,
+        place_of_birth, nationality, gender, marital_status,
+        national_id, phone, address, city, state, postal_code,
+        country, emergency_contact_name, emergency_contact_relationship,
+        emergency_contact_phone, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    try {
+      stmt.run(
+        id,
+        userData.email,
+        hashedPassword,
+        userData.firstName,
+        userData.middleName || null,
+        userData.lastName,
+        userData.fatherName || null,
+        userData.grandfatherName || null,
+        userData.motherName || null,
+        userData.dateOfBirth,
+        userData.placeOfBirth,
+        userData.nationality || 'Sudanese',
+        userData.gender,
+        userData.maritalStatus || null,
+        userData.nationalId,
+        userData.phone,
+        userData.address,
+        userData.city,
+        userData.state,
+        userData.postalCode || null,
+        userData.country || 'Sudan',
+        userData.emergencyContactName || null,
+        userData.emergencyContactRelationship || null,
+        userData.emergencyContactPhone || null,
+        getCurrentTimestamp(),
+        getCurrentTimestamp()
+      );
+
+      return User.findById(id);
+    } catch (error) {
+      if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        if (error.message.includes('email')) {
+          throw new Error('Email already exists');
+        }
+        if (error.message.includes('national_id')) {
+          throw new Error('National ID already exists');
+        }
+      }
+      throw error;
     }
   },
-  
-  // Address Information
-  address: {
-    street: { type: String, required: true, trim: true },
-    city: { type: String, required: true, trim: true },
-    state: { type: String, required: true, trim: true },
-    postalCode: { type: String, trim: true },
-    country: { type: String, default: 'Sudan', trim: true }
-  },
-  
-  // Government Information
-  passportNumber: {
-    type: String,
-    sparse: true, // Allows multiple null values
-    unique: true,
-    trim: true,
-    match: [/^[A-Z]{2}[0-9]{7}$/, 'Passport number must be in format AB1234567']
-  },
-  passportExpiryDate: {
-    type: Date,
-    validate: {
-      validator: function(value) {
-        return !value || value > new Date();
-      },
-      message: 'Passport expiry date must be in the future'
-    }
-  },
-  
-  // Account Status
-  role: {
-    type: String,
-    enum: ['citizen', 'admin', 'staff', 'super_admin'],
-    default: 'citizen'
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'active', 'suspended', 'blocked'],
-    default: 'pending'
-  },
-  emailVerified: {
-    type: Boolean,
-    default: false
-  },
-  phoneVerified: {
-    type: Boolean,
-    default: false
-  },
-  
-  // Security
-  lastLogin: {
-    type: Date,
-    default: null
-  },
-  loginAttempts: {
-    type: Number,
-    default: 0
-  },
-  lockUntil: {
-    type: Date,
-    default: null
-  },
-  twoFactorEnabled: {
-    type: Boolean,
-    default: false
-  },
-  twoFactorSecret: {
-    type: String,
-    select: false
-  },
-  
-  // Profile Image
-  profileImage: {
-    filename: String,
-    path: String,
-    mimetype: String,
-    size: Number,
-    uploadedAt: Date
-  },
-  
-  // Verification Tokens
-  emailVerificationToken: {
-    type: String,
-    select: false
-  },
-  emailVerificationExpires: {
-    type: Date,
-    select: false
-  },
-  passwordResetToken: {
-    type: String,
-    select: false
-  },
-  passwordResetExpires: {
-    type: Date,
-    select: false
-  }
-}, {
-  timestamps: true,
-  collection: 'users'
-});
 
-// Indexes
-UserSchema.index({ email: 1 });
-UserSchema.index({ nationalId: 1 });
-UserSchema.index({ passportNumber: 1 }, { sparse: true });
-UserSchema.index({ createdAt: -1 });
+  // Find user by ID
+  findById: (id) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
+    const user = stmt.get(id);
+    return user ? formatUser(user) : null;
+  },
 
-// Virtual for full name
-UserSchema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.lastName}`;
-});
+  // Find user by email
+  findByEmail: (email) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
+    const user = stmt.get(email);
+    return user ? formatUser(user) : null;
+  },
 
-// Virtual for account locked status
-UserSchema.virtual('isLocked').get(function() {
-  return !!(this.lockUntil && this.lockUntil > Date.now());
-});
+  // Find user by national ID
+  findByNationalId: (nationalId) => {
+    const stmt = db.prepare('SELECT * FROM users WHERE national_id = ?');
+    const user = stmt.get(nationalId);
+    return user ? formatUser(user) : null;
+  },
 
-// Pre-save middleware to hash password
-UserSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+  // Update user
+  update: (id, updateData) => {
+    const allowedFields = [
+      'first_name', 'middle_name', 'last_name', 'father_name',
+      'grandfather_name', 'mother_name', 'phone', 'address',
+      'city', 'state', 'postal_code', 'country',
+      'emergency_contact_name', 'emergency_contact_relationship',
+      'emergency_contact_phone'
+    ];
 
-// Method to compare password
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw error;
-  }
-};
+    const updates = [];
+    const values = [];
 
-// Method to increment login attempts
-UserSchema.methods.incLoginAttempts = async function() {
-  // If we have a previous lock that has expired, restart at 1
-  if (this.lockUntil && this.lockUntil < Date.now()) {
-    return this.updateOne({
-      $unset: { lockUntil: 1 },
-      $set: { loginAttempts: 1 }
+    Object.keys(updateData).forEach(key => {
+      const dbField = camelToSnake(key);
+      if (allowedFields.includes(dbField)) {
+        updates.push(`${dbField} = ?`);
+        values.push(updateData[key]);
+      }
     });
-  }
-  
-  const updates = { $inc: { loginAttempts: 1 } };
-  
-  // If we hit max attempts and it's not locked, lock the account
-  if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
-    updates.$set = { lockUntil: Date.now() + 2 * 60 * 60 * 1000 }; // 2 hours
-  }
-  
-  return this.updateOne(updates);
-};
 
-// Method to reset login attempts
-UserSchema.methods.resetLoginAttempts = async function() {
-  return this.updateOne({
-    $unset: {
-      loginAttempts: 1,
-      lockUntil: 1
+    if (updates.length === 0) {
+      throw new Error('No valid fields to update');
     }
-  });
-};
 
-// Method to generate verification token
-UserSchema.methods.generateVerificationToken = function() {
-  const token = Math.random().toString(36).substring(2, 15) + 
-                Math.random().toString(36).substring(2, 15);
-  
-  this.emailVerificationToken = token;
-  this.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-  
-  return token;
-};
+    updates.push('updated_at = ?');
+    values.push(getCurrentTimestamp());
+    values.push(id);
 
-// Ensure virtual fields are serialized
-UserSchema.set('toJSON', {
-  virtuals: true,
-  transform: function(doc, ret) {
-    delete ret.password;
-    delete ret.emailVerificationToken;
-    delete ret.emailVerificationExpires;
-    delete ret.passwordResetToken;
-    delete ret.passwordResetExpires;
-    delete ret.twoFactorSecret;
-    return ret;
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET ${updates.join(', ')} 
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    if (result.changes === 0) {
+      throw new Error('User not found');
+    }
+
+    return User.findById(id);
+  },
+
+  // Delete user
+  delete: (id) => {
+    const stmt = db.prepare('DELETE FROM users WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  },
+
+  // Verify password
+  verifyPassword: async (user, password) => {
+    return await bcrypt.compare(password, user.password);
+  },
+
+  // Change password
+  changePassword: async (id, newPassword) => {
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const stmt = db.prepare(`
+      UPDATE users 
+      SET password = ?, updated_at = ? 
+      WHERE id = ?
+    `);
+    
+    const result = stmt.run(hashedPassword, getCurrentTimestamp(), id);
+    return result.changes > 0;
+  },
+
+  // List users with pagination
+  list: (options = {}) => {
+    const { page = 1, limit = 10, search = '' } = options;
+    const offset = (page - 1) * limit;
+
+    let query = 'SELECT * FROM users';
+    const params = [];
+
+    if (search) {
+      query += ' WHERE email LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR national_id LIKE ?';
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const stmt = db.prepare(query);
+    const users = stmt.all(...params);
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM users';
+    const countParams = [];
+    if (search) {
+      countQuery += ' WHERE email LIKE ? OR first_name LIKE ? OR last_name LIKE ? OR national_id LIKE ?';
+      const searchTerm = `%${search}%`;
+      countParams.push(searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const { total } = countStmt.get(...countParams);
+
+    return {
+      users: users.map(formatUser),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
   }
-});
+};
 
-export default mongoose.models.User || mongoose.model('User', UserSchema); 
+// Helper function to format user data (convert snake_case to camelCase)
+function formatUser(user) {
+  if (!user) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    password: user.password, // Keep for password verification
+    firstName: user.first_name,
+    middleName: user.middle_name,
+    lastName: user.last_name,
+    fatherName: user.father_name,
+    grandfatherName: user.grandfather_name,
+    motherName: user.mother_name,
+    dateOfBirth: user.date_of_birth,
+    placeOfBirth: user.place_of_birth,
+    nationality: user.nationality,
+    gender: user.gender,
+    maritalStatus: user.marital_status,
+    nationalId: user.national_id,
+    phone: user.phone,
+    address: user.address,
+    city: user.city,
+    state: user.state,
+    postalCode: user.postal_code,
+    country: user.country,
+    emergencyContactName: user.emergency_contact_name,
+    emergencyContactRelationship: user.emergency_contact_relationship,
+    emergencyContactPhone: user.emergency_contact_phone,
+    createdAt: user.created_at,
+    updatedAt: user.updated_at
+  };
+}
+
+// Helper function to convert camelCase to snake_case
+function camelToSnake(str) {
+  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+}
+
+export default User; 

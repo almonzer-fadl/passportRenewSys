@@ -1,240 +1,211 @@
-import { NextAuthOptions } from 'next-auth';
+import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { User, AuditLog } from '@/models';
-import connectDB from '@/lib/mongodb';
+import { User } from '../models/User.js';
+import { createAuditLog } from './auditLog.js';
 
 export const authOptions = {
   providers: [
     CredentialsProvider({
       name: 'credentials',
       credentials: {
-        email: { 
-          label: 'Email', 
-          type: 'email',
-          placeholder: 'your.email@example.com'
-        },
-        password: { 
-          label: 'Password', 
-          type: 'password' 
-        }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            throw new Error('Email and password are required');
+            return null;
           }
 
-          await connectDB();
-
-          // Find user with password field included
-          const user = await User.findOne({ 
-            email: credentials.email.toLowerCase() 
-          }).select('+password');
-
+          // Find user by email
+          const user = User.findByEmail(credentials.email);
+          
           if (!user) {
-            // Log failed login attempt
-            await AuditLog.logSecurityEvent(
-              'user_login_failed',
-              `Failed login attempt for non-existent email: ${credentials.email}`,
-              {
-                ipAddress: req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'unknown',
-                userAgent: req?.headers?.['user-agent'] || 'unknown'
-              },
-              'medium',
-              60
-            );
-            throw new Error('Invalid email or password');
-          }
-
-          // Check if account is locked
-          if (user.isLocked) {
-            await AuditLog.logSecurityEvent(
-              'user_login_failed',
-              `Login attempt on locked account: ${user.email}`,
-              {
-                ipAddress: req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'unknown',
-                userAgent: req?.headers?.['user-agent'] || 'unknown'
-              },
-              'high',
-              80
-            );
-            throw new Error('Account is temporarily locked. Please try again later.');
-          }
-
-          // Check if account is active
-          if (user.status !== 'active') {
-            await AuditLog.logSecurityEvent(
-              'user_login_failed',
-              `Login attempt on inactive account: ${user.email}`,
-              {
-                ipAddress: req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'unknown',
-                userAgent: req?.headers?.['user-agent'] || 'unknown'
-              },
-              'medium',
-              70
-            );
-            throw new Error(`Account is ${user.status}. Please contact support.`);
+            console.log('User not found:', credentials.email);
+            return null;
           }
 
           // Verify password
-          const isPasswordValid = await user.comparePassword(credentials.password);
-
-          if (!isPasswordValid) {
-            // Increment login attempts
-            await user.incLoginAttempts();
+          const isValidPassword = await User.verifyPassword(user, credentials.password);
+          
+          if (!isValidPassword) {
+            console.log('Invalid password for user:', credentials.email);
             
-            await AuditLog.logSecurityEvent(
-              'user_login_failed',
-              `Invalid password for user: ${user.email}`,
-              {
-                ipAddress: req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'unknown',
-                userAgent: req?.headers?.['user-agent'] || 'unknown'
-              },
-              'medium',
-              65
-            );
-            throw new Error('Invalid email or password');
+            // Log failed login attempt
+            await createAuditLog({
+              userId: user.id,
+              action: 'LOGIN_FAILED',
+              resourceType: 'authentication',
+              ipAddress: req.headers['x-forwarded-for'] || req.connection?.remoteAddress,
+              userAgent: req.headers['user-agent'],
+              details: { email: credentials.email, reason: 'invalid_password' }
+            });
+            
+            return null;
           }
-
-          // Reset login attempts on successful login
-          if (user.loginAttempts > 0) {
-            await user.resetLoginAttempts();
-          }
-
-          // Update last login
-          user.lastLogin = new Date();
-          await user.save();
 
           // Log successful login
-          await AuditLog.logUserAction(
-            'user_login',
-            user._id,
-            `User logged in successfully: ${user.email}`,
-            {
-              resourceType: 'user',
-              resourceId: user._id.toString(),
-              resourceName: user.fullName
-            },
-            {
-              ipAddress: req?.headers?.['x-forwarded-for'] || req?.headers?.['x-real-ip'] || 'unknown',
-              userAgent: req?.headers?.['user-agent'] || 'unknown'
-            }
-          );
+          await createAuditLog({
+            userId: user.id,
+            action: 'LOGIN_SUCCESS',
+            resourceType: 'authentication',
+            ipAddress: req.headers['x-forwarded-for'] || req.connection?.remoteAddress,
+            userAgent: req.headers['user-agent'],
+            details: { email: credentials.email }
+          });
 
-          // Return user object for session
+          // Return user object (without password)
+          const { password, ...userWithoutPassword } = user;
           return {
-            id: user._id.toString(),
+            id: user.id,
             email: user.email,
-            name: user.fullName,
+            name: `${user.firstName} ${user.lastName}`,
             firstName: user.firstName,
             lastName: user.lastName,
-            role: user.role,
-            status: user.status,
-            nationalId: user.nationalId,
-            phoneNumber: user.phoneNumber,
-            emailVerified: user.emailVerified,
-            phoneVerified: user.phoneVerified,
-            profileImage: user.profileImage?.path,
-            twoFactorEnabled: user.twoFactorEnabled
+            nationalId: user.nationalId
           };
 
         } catch (error) {
           console.error('Authentication error:', error);
-          throw new Error(error.message || 'Authentication failed');
+          return null;
         }
       }
     })
   ],
-  
   session: {
     strategy: 'jwt',
-    maxAge: parseInt(process.env.SESSION_TIMEOUT) || 3600, // 1 hour default
+    maxAge: 24 * 60 * 60, // 24 hours
   },
-  
   jwt: {
-    secret: process.env.JWT_SECRET,
-    maxAge: parseInt(process.env.SESSION_TIMEOUT) || 3600,
+    maxAge: 24 * 60 * 60, // 24 hours
   },
-  
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.nationalId = user.nationalId;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+        session.user.nationalId = token.nationalId;
+      }
+      return session;
+    },
+    async signIn({ user, account, profile, email, credentials }) {
+      // Allow sign in
+      return true;
+    },
+    async redirect({ url, baseUrl }) {
+      // If the url is just the base URL, redirect to dashboard
+      if (url === baseUrl) {
+        return `${baseUrl}/dashboard`;
+      }
+      
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
+    }
+  },
   pages: {
     signIn: '/auth/login',
     signUp: '/auth/register',
     error: '/auth/error',
-    verifyRequest: '/auth/verify-request',
-    newUser: '/dashboard'
   },
-  
-  callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
-      if (account && user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.status = user.status;
-        token.nationalId = user.nationalId;
-        token.phoneNumber = user.phoneNumber;
-        token.emailVerified = user.emailVerified;
-        token.phoneVerified = user.phoneVerified;
-        token.profileImage = user.profileImage;
-        token.twoFactorEnabled = user.twoFactorEnabled;
-        token.firstName = user.firstName;
-        token.lastName = user.lastName;
-      }
-      
-      return token;
-    },
-    
-    async session({ session, token }) {
-      // Send properties to the client
-      if (token) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.status = token.status;
-        session.user.nationalId = token.nationalId;
-        session.user.phoneNumber = token.phoneNumber;
-        session.user.emailVerified = token.emailVerified;
-        session.user.phoneVerified = token.phoneVerified;
-        session.user.profileImage = token.profileImage;
-        session.user.twoFactorEnabled = token.twoFactorEnabled;
-        session.user.firstName = token.firstName;
-        session.user.lastName = token.lastName;
-      }
-      
-      return session;
-    },
-    
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url;
-      return baseUrl;
-    }
-  },
-  
-  events: {
-    async signOut({ token }) {
-      if (token?.id) {
-        try {
-          await connectDB();
-          await AuditLog.logUserAction(
-            'user_logout',
-            token.id,
-            `User logged out: ${token.email}`,
-            {
-              resourceType: 'user',
-              resourceId: token.id,
-              resourceName: token.name
-            }
-          );
-        } catch (error) {
-          console.error('Error logging signOut event:', error);
-        }
-      }
-    }
-  },
-  
-  debug: process.env.NODE_ENV === 'development',
-  
   secret: process.env.NEXTAUTH_SECRET,
-}; 
+  debug: process.env.NODE_ENV === 'development',
+};
+
+// Helper function to get current user from session
+export async function getCurrentUser(req) {
+  try {
+    const session = await getServerSession(req, authOptions);
+    return session?.user || null;
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+}
+
+// Helper function to protect API routes
+export function withAuth(handler) {
+  return async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          error: 'Authentication required',
+          code: 'UNAUTHORIZED' 
+        });
+      }
+
+      // Add user to request object
+      req.user = user;
+      
+      return handler(req, res);
+    } catch (error) {
+      console.error('Auth middleware error:', error);
+      return res.status(500).json({ 
+        error: 'Authentication error',
+        code: 'AUTH_ERROR' 
+      });
+    }
+  };
+}
+
+// Helper function to protect admin routes
+export function withAdminAuth(handler) {
+  return async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      
+      if (!user) {
+        return res.status(401).json({ 
+          error: 'Authentication required',
+          code: 'UNAUTHORIZED' 
+        });
+      }
+
+      // Check if user is admin (you can implement admin role logic here)
+      // For now, we'll use a simple email check or add admin field to user model
+      const fullUser = User.findById(user.id);
+      if (!fullUser || !isAdminUser(fullUser)) {
+        return res.status(403).json({ 
+          error: 'Admin access required',
+          code: 'FORBIDDEN' 
+        });
+      }
+
+      // Add user to request object
+      req.user = user;
+      
+      return handler(req, res);
+    } catch (error) {
+      console.error('Admin auth middleware error:', error);
+      return res.status(500).json({ 
+        error: 'Authentication error',
+        code: 'AUTH_ERROR' 
+      });
+    }
+  };
+}
+
+// Helper function to check if user is admin
+function isAdminUser(user) {
+  // You can implement your admin logic here
+  // For example, check if email ends with @passport.gov.sd
+  return user.email.endsWith('@passport.gov.sd');
+}
+
+export default NextAuth(authOptions); 

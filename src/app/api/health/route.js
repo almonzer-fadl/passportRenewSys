@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import getDatabase from '../../../lib/database.js';
 
 export async function GET() {
   try {
     // Check database connection
-    await connectDB();
+    const db = getDatabase();
     
     const healthStatus = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
       database: 'connected',
+      databaseType: 'SQLite',
       services: {
         authentication: 'operational',
         fileUpload: 'operational',
@@ -29,6 +30,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'unknown',
       database: 'disconnected',
+      databaseType: 'SQLite',
       error: error.message,
       services: {
         authentication: 'unknown',

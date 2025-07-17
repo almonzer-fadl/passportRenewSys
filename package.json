@@ -2,21 +2,22 @@
   "name": "passportrenew",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "init-db": "node scripts/init-database.js"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@stripe/stripe-js": "^7.4.0",
     "@tailwindcss/typography": "^0.5.16",
     "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^12.2.0",
     "daisyui": "^5.0.46",
     "face-api.js": "^0.20.0",
-    "mongodb": "^6.17.0",
-    "mongoose": "^8.16.3",
     "next": "15.4.1",
     "next-auth": "^4.24.11",
     "nodemailer": "^6.10.1",

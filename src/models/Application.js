@@ -1,387 +1,365 @@
-import mongoose from 'mongoose';
+import getDatabase, { generateId, getCurrentTimestamp } from '../lib/database.js';
 
-const ApplicationSchema = new mongoose.Schema({
-  // Reference to user
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'User ID is required'],
-    index: true
-  },
-  
-  // Application Details
-  applicationNumber: {
-    type: String,
-    unique: true,
-    required: true,
-    index: true
-  },
-  applicationType: {
-    type: String,
-    enum: ['renewal', 'new', 'replacement', 'correction'],
-    default: 'renewal',
-    required: true
-  },
-  processingType: {
-    type: String,
-    enum: ['regular', 'express'],
-    default: 'regular',
-    required: true
-  },
-  
-  // Current Passport Information
-  currentPassport: {
-    passportNumber: {
-      type: String,
-      required: [true, 'Current passport number is required'],
-      trim: true,
-      match: [/^[A-Z]{2}[0-9]{7}$/, 'Passport number must be in format AB1234567']
-    },
-    issueDate: {
-      type: Date,
-      required: [true, 'Passport issue date is required']
-    },
-    expiryDate: {
-      type: Date,
-      required: [true, 'Passport expiry date is required']
-    },
-    issuingOffice: {
-      type: String,
-      required: [true, 'Issuing office is required'],
-      trim: true
-    }
-  },
-  
-  // Personal Information (at time of application)
-  personalInfo: {
-    firstName: { type: String, required: true, trim: true },
-    lastName: { type: String, required: true, trim: true },
-    fatherName: { type: String, required: true, trim: true },
-    grandfatherName: { type: String, required: true, trim: true },
-    motherName: { type: String, required: true, trim: true },
-    nationalId: { type: String, required: true, trim: true },
-    dateOfBirth: { type: Date, required: true },
-    placeOfBirth: { type: String, required: true, trim: true },
-    gender: {
-      type: String,
-      enum: ['male', 'female'],
-      required: true
-    },
-    maritalStatus: {
-      type: String,
-      enum: ['single', 'married', 'divorced', 'widowed'],
-      required: true
-    },
-    profession: { type: String, required: true, trim: true },
-    nationality: { type: String, default: 'Sudanese', trim: true }
-  },
-  
-  // Contact Information
-  contactInfo: {
-    phoneNumber: { type: String, required: true, trim: true },
-    email: { type: String, required: true, lowercase: true, trim: true },
-    address: {
-      street: { type: String, required: true, trim: true },
-      city: { type: String, required: true, trim: true },
-      state: { type: String, required: true, trim: true },
-      postalCode: { type: String, trim: true },
-      country: { type: String, default: 'Sudan', trim: true }
-    }
-  },
-  
-  // Emergency Contact
-  emergencyContact: {
-    name: { type: String, required: true, trim: true },
-    relationship: { type: String, required: true, trim: true },
-    phoneNumber: { type: String, required: true, trim: true },
-    address: { type: String, required: true, trim: true }
-  },
-  
-  // Travel Information
-  travelInfo: {
-    purposeOfTravel: {
-      type: String,
-      enum: ['tourism', 'business', 'education', 'medical', 'family', 'pilgrimage', 'other'],
-      required: true
-    },
-    intendedCountries: [{ type: String, trim: true }],
-    departureDate: Date,
-    returnDate: Date
-  },
-  
-  // Application Status
-  status: {
-    type: String,
-    enum: [
-      'draft',           // User is filling the form
-      'submitted',       // Application submitted, awaiting documents
-      'documents_uploaded', // All documents uploaded, awaiting review
-      'under_review',    // Being reviewed by staff
-      'pending_payment', // Approved, waiting for payment
-      'payment_confirmed', // Payment received, processing
-      'in_processing',   // Being processed
-      'ready_for_collection', // Passport ready
-      'completed',       // Passport collected
-      'rejected',        // Application rejected
-      'cancelled'        // Application cancelled
-    ],
-    default: 'draft',
-    index: true
-  },
-  
-  // Review Information
-  review: {
-    reviewedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    reviewedAt: Date,
-    reviewNotes: String,
-    requiresAdditionalDocuments: {
-      type: Boolean,
-      default: false
-    },
-    additionalDocumentsRequired: [String],
-    approvalLevel: {
-      type: String,
-      enum: ['staff', 'supervisor', 'manager'],
-      default: 'staff'
-    }
-  },
-  
-  // Payment Information
-  payment: {
-    amount: {
-      type: Number,
-      required: function() {
-        return ['pending_payment', 'payment_confirmed', 'in_processing', 'ready_for_collection', 'completed'].includes(this.status);
-      }
-    },
-    currency: {
-      type: String,
-      default: 'USD'
-    },
-    method: {
-      type: String,
-      enum: ['card', 'bank_transfer', 'cash', 'mobile_money']
-    },
-    transactionId: String,
-    paidAt: Date,
-    stripePaymentIntentId: String
-  },
-  
-  // Processing Information
-  processing: {
-    expectedCompletionDate: Date,
-    actualCompletionDate: Date,
-    processingOffice: String,
-    collectionOffice: String,
-    trackingNumber: String,
-    priority: {
-      type: String,
-      enum: ['normal', 'high', 'urgent'],
-      default: 'normal'
-    }
-  },
-  
-  // AI Validation Results
-  aiValidation: {
-    faceRecognition: {
-      confidence: Number,
-      verified: Boolean,
-      timestamp: Date,
-      model: String
-    },
-    documentValidation: {
-      passportScan: {
-        confidence: Number,
-        extractedData: mongoose.Schema.Types.Mixed,
-        verified: Boolean,
-        timestamp: Date
-      },
-      nationalIdScan: {
-        confidence: Number,
-        extractedData: mongoose.Schema.Types.Mixed,
-        verified: Boolean,
-        timestamp: Date
-      }
-    },
-    photoValidation: {
-      qualityScore: Number,
-      backgroundCheck: Boolean,
-      faceDetected: Boolean,
-      meetsCriteria: Boolean,
-      timestamp: Date
-    }
-  },
-  
-  // Submission and Completion Dates
-  submittedAt: Date,
-  completedAt: Date,
-  
-  // Notes and Comments
-  notes: [{
-    addedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    content: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    type: {
-      type: String,
-      enum: ['general', 'review', 'processing', 'collection'],
-      default: 'general'
-    },
-    isInternal: {
-      type: Boolean,
-      default: false
-    },
-    addedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  
-  // System Fields
-  applicationVersion: {
-    type: Number,
-    default: 1
-  },
-  lastModifiedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }
-}, {
-  timestamps: true,
-  collection: 'applications'
-});
+const db = getDatabase();
 
-// Indexes
-ApplicationSchema.index({ userId: 1, status: 1 });
-ApplicationSchema.index({ applicationNumber: 1 });
-ApplicationSchema.index({ status: 1, createdAt: -1 });
-ApplicationSchema.index({ 'currentPassport.passportNumber': 1 });
-ApplicationSchema.index({ 'personalInfo.nationalId': 1 });
-ApplicationSchema.index({ submittedAt: -1 });
-
-// Virtual for days since submission
-ApplicationSchema.virtual('daysSinceSubmission').get(function() {
-  if (!this.submittedAt) return null;
-  return Math.floor((new Date() - this.submittedAt) / (1000 * 60 * 60 * 24));
-});
-
-// Virtual for processing time
-ApplicationSchema.virtual('processingDays').get(function() {
-  const startDate = this.submittedAt;
-  const endDate = this.completedAt || new Date();
-  if (!startDate) return null;
-  return Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
-});
-
-// Virtual for full name
-ApplicationSchema.virtual('fullName').get(function() {
-  return `${this.personalInfo.firstName} ${this.personalInfo.lastName}`;
-});
-
-// Pre-save middleware to generate application number
-ApplicationSchema.pre('save', async function(next) {
-  if (this.isNew && !this.applicationNumber) {
-    const year = new Date().getFullYear();
-    const prefix = `PRS${year}`;
+// Application operations
+export const Application = {
+  // Create a new application
+  create: (applicationData) => {
+    const id = generateId();
+    const applicationNumber = ensureUniqueApplicationNumber();
     
-    // Find the latest application number for this year
-    const latestApp = await this.constructor.findOne({
-      applicationNumber: new RegExp(`^${prefix}`)
-    }).sort({ applicationNumber: -1 });
-    
-    let sequence = 1;
-    if (latestApp) {
-      const lastSequence = parseInt(latestApp.applicationNumber.replace(prefix, ''));
-      sequence = lastSequence + 1;
-    }
-    
-    this.applicationNumber = `${prefix}${sequence.toString().padStart(6, '0')}`;
-  }
-  
-  // Set submission date when status changes to submitted
-  if (this.isModified('status') && this.status === 'submitted' && !this.submittedAt) {
-    this.submittedAt = new Date();
-  }
-  
-  // Set completion date when status changes to completed
-  if (this.isModified('status') && this.status === 'completed' && !this.completedAt) {
-    this.completedAt = new Date();
-    this.processing.actualCompletionDate = new Date();
-  }
-  
-  // Calculate expected completion date based on processing type
-  if (this.isModified('processingType') || this.isModified('submittedAt')) {
-    if (this.submittedAt) {
-      const processingDays = this.processingType === 'express' ? 
-        parseInt(process.env.GOV_PROCESSING_DAYS_EXPRESS) || 7 :
-        parseInt(process.env.GOV_PROCESSING_DAYS_REGULAR) || 14;
-      
-      this.processing.expectedCompletionDate = new Date(
-        this.submittedAt.getTime() + (processingDays * 24 * 60 * 60 * 1000)
+    const stmt = db.prepare(`
+      INSERT INTO applications (
+        id, application_number, user_id, application_type, processing_speed,
+        current_passport_number, current_passport_issue_date, current_passport_expiry_date,
+        current_passport_issuing_office, current_passport_status, replacement_reason,
+        travel_purpose, travel_countries, travel_departure_date, travel_return_date,
+        status, base_fee, express_fee, service_fee, total_fee,
+        created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    try {
+      const expressFeeCost = applicationData.processingSpeed === 'express' ? 75.00 : 0.00;
+      const totalFee = 150.00 + expressFeeCost + 25.00; // base + express + service
+
+      stmt.run(
+        id,
+        applicationNumber,
+        applicationData.userId,
+        applicationData.applicationType,
+        applicationData.processingSpeed || 'regular',
+        applicationData.currentPassportNumber || null,
+        applicationData.currentPassportIssueDate || null,
+        applicationData.currentPassportExpiryDate || null,
+        applicationData.currentPassportIssuingOffice || null,
+        applicationData.currentPassportStatus || null,
+        applicationData.replacementReason || null,
+        applicationData.travelPurpose || null,
+        applicationData.travelCountries ? JSON.stringify(applicationData.travelCountries) : null,
+        applicationData.travelDepartureDate || null,
+        applicationData.travelReturnDate || null,
+        'draft',
+        150.00,
+        expressFeeCost,
+        25.00,
+        totalFee,
+        getCurrentTimestamp(),
+        getCurrentTimestamp()
       );
+
+      return Application.findById(id);
+    } catch (error) {
+      throw error;
     }
-  }
-  
-  next();
-});
+  },
 
-// Method to add a note
-ApplicationSchema.methods.addNote = function(content, addedBy, type = 'general', isInternal = false) {
-  this.notes.push({
-    content,
-    addedBy,
-    type,
-    isInternal,
-    addedAt: new Date()
-  });
-  return this.save();
+  // Find application by ID
+  findById: (id) => {
+    const stmt = db.prepare('SELECT * FROM applications WHERE id = ?');
+    const application = stmt.get(id);
+    return application ? formatApplication(application) : null;
+  },
+
+  // Find application by application number
+  findByNumber: (applicationNumber) => {
+    const stmt = db.prepare('SELECT * FROM applications WHERE application_number = ?');
+    const application = stmt.get(applicationNumber);
+    return application ? formatApplication(application) : null;
+  },
+
+  // Find applications by user ID
+  findByUserId: (userId, options = {}) => {
+    const { page = 1, limit = 10, status = null } = options;
+    const offset = (page - 1) * limit;
+
+    let query = 'SELECT * FROM applications WHERE user_id = ?';
+    const params = [userId];
+
+    if (status) {
+      query += ' AND status = ?';
+      params.push(status);
+    }
+
+    query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const stmt = db.prepare(query);
+    const applications = stmt.all(...params);
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM applications WHERE user_id = ?';
+    const countParams = [userId];
+    if (status) {
+      countQuery += ' AND status = ?';
+      countParams.push(status);
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const { total } = countStmt.get(...countParams);
+
+    return {
+      applications: applications.map(formatApplication),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  },
+
+  // Update application
+  update: (id, updateData) => {
+    const allowedFields = [
+      'application_type', 'processing_speed', 'current_passport_number',
+      'current_passport_issue_date', 'current_passport_expiry_date',
+      'current_passport_issuing_office', 'current_passport_status',
+      'replacement_reason', 'travel_purpose', 'travel_countries',
+      'travel_departure_date', 'travel_return_date', 'status',
+      'submitted_at', 'reviewed_at', 'reviewed_by', 'notes'
+    ];
+
+    const updates = [];
+    const values = [];
+
+    Object.keys(updateData).forEach(key => {
+      const dbField = camelToSnake(key);
+      if (allowedFields.includes(dbField)) {
+        updates.push(`${dbField} = ?`);
+        let value = updateData[key];
+        
+        // Handle JSON fields
+        if (key === 'travelCountries' && Array.isArray(value)) {
+          value = JSON.stringify(value);
+        }
+        
+        values.push(value);
+      }
+    });
+
+    if (updates.length === 0) {
+      throw new Error('No valid fields to update');
+    }
+
+    // Update fees if processing speed changed
+    if (updateData.processingSpeed) {
+      const expressFeeCost = updateData.processingSpeed === 'express' ? 75.00 : 0.00;
+      const totalFee = 150.00 + expressFeeCost + 25.00;
+      
+      updates.push('express_fee = ?', 'total_fee = ?');
+      values.push(expressFeeCost, totalFee);
+    }
+
+    updates.push('updated_at = ?');
+    values.push(getCurrentTimestamp());
+    values.push(id);
+
+    const stmt = db.prepare(`
+      UPDATE applications 
+      SET ${updates.join(', ')} 
+      WHERE id = ?
+    `);
+
+    const result = stmt.run(...values);
+    if (result.changes === 0) {
+      throw new Error('Application not found');
+    }
+
+    return Application.findById(id);
+  },
+
+  // Submit application
+  submit: (id) => {
+    const stmt = db.prepare(`
+      UPDATE applications 
+      SET status = 'submitted', submitted_at = ?, updated_at = ? 
+      WHERE id = ? AND status = 'draft'
+    `);
+    
+    const timestamp = getCurrentTimestamp();
+    const result = stmt.run(timestamp, timestamp, id);
+    
+    if (result.changes === 0) {
+      throw new Error('Application not found or already submitted');
+    }
+    
+    return Application.findById(id);
+  },
+
+  // Delete application
+  delete: (id) => {
+    const stmt = db.prepare('DELETE FROM applications WHERE id = ?');
+    const result = stmt.run(id);
+    return result.changes > 0;
+  },
+
+  // List all applications (admin)
+  list: (options = {}) => {
+    const { page = 1, limit = 10, status = null, search = '' } = options;
+    const offset = (page - 1) * limit;
+
+    let query = `
+      SELECT a.*, u.first_name, u.last_name, u.email, u.national_id
+      FROM applications a
+      JOIN users u ON a.user_id = u.id
+    `;
+    const params = [];
+
+    const conditions = [];
+    if (status) {
+      conditions.push('a.status = ?');
+      params.push(status);
+    }
+
+    if (search) {
+      conditions.push(`(
+        a.application_number LIKE ? OR 
+        u.first_name LIKE ? OR 
+        u.last_name LIKE ? OR 
+        u.email LIKE ? OR 
+        u.national_id LIKE ?
+      )`);
+      const searchTerm = `%${search}%`;
+      params.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+    }
+
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    query += ' ORDER BY a.created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const stmt = db.prepare(query);
+    const applications = stmt.all(...params);
+
+    // Get total count
+    let countQuery = 'SELECT COUNT(*) as total FROM applications a JOIN users u ON a.user_id = u.id';
+    const countParams = [];
+    if (conditions.length > 0) {
+      countQuery += ' WHERE ' + conditions.join(' AND ');
+      // Add the same search parameters for count query
+      if (status) countParams.push(status);
+      if (search) {
+        const searchTerm = `%${search}%`;
+        countParams.push(searchTerm, searchTerm, searchTerm, searchTerm, searchTerm);
+      }
+    }
+
+    const countStmt = db.prepare(countQuery);
+    const { total } = countStmt.get(...countParams);
+
+    return {
+      applications: applications.map(formatApplication),
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    };
+  },
+
+  // Get application statistics
+  getStats: () => {
+    const stmt = db.prepare(`
+      SELECT 
+        status,
+        COUNT(*) as count
+      FROM applications 
+      GROUP BY status
+    `);
+    
+    const stats = stmt.all();
+    
+    const totalStmt = db.prepare('SELECT COUNT(*) as total FROM applications');
+    const { total } = totalStmt.get();
+    
+    return {
+      total,
+      byStatus: stats.reduce((acc, stat) => {
+        acc[stat.status] = stat.count;
+        return acc;
+      }, {})
+    };
+  }
 };
 
-// Method to update status with validation
-ApplicationSchema.methods.updateStatus = function(newStatus, updatedBy, notes = '') {
-  const validTransitions = {
-    'draft': ['submitted', 'cancelled'],
-    'submitted': ['documents_uploaded', 'rejected', 'cancelled'],
-    'documents_uploaded': ['under_review', 'rejected'],
-    'under_review': ['pending_payment', 'documents_uploaded', 'rejected'],
-    'pending_payment': ['payment_confirmed', 'rejected', 'cancelled'],
-    'payment_confirmed': ['in_processing'],
-    'in_processing': ['ready_for_collection', 'rejected'],
-    'ready_for_collection': ['completed'],
-    'completed': [],
-    'rejected': ['under_review'], // Allow re-review
-    'cancelled': []
+// Helper function to generate unique application number
+function generateApplicationNumber() {
+  const year = new Date().getFullYear();
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `PSP${year}${timestamp}${random}`;
+}
+
+// Helper function to ensure unique application number
+function ensureUniqueApplicationNumber() {
+  let applicationNumber;
+  let attempts = 0;
+  const maxAttempts = 10;
+  
+  do {
+    applicationNumber = generateApplicationNumber();
+    attempts++;
+    
+    // Check if this number already exists
+    const existing = Application.findByNumber(applicationNumber);
+    if (!existing) {
+      return applicationNumber;
+    }
+  } while (attempts < maxAttempts);
+  
+  // If we've tried too many times, add a timestamp to ensure uniqueness
+  return `${generateApplicationNumber()}_${Date.now()}`;
+}
+
+// Helper function to format application data
+function formatApplication(application) {
+  if (!application) return null;
+
+  return {
+    id: application.id,
+    applicationNumber: application.application_number,
+    userId: application.user_id,
+    applicationType: application.application_type,
+    processingSpeed: application.processing_speed,
+    currentPassportNumber: application.current_passport_number,
+    currentPassportIssueDate: application.current_passport_issue_date,
+    currentPassportExpiryDate: application.current_passport_expiry_date,
+    currentPassportIssuingOffice: application.current_passport_issuing_office,
+    currentPassportStatus: application.current_passport_status,
+    replacementReason: application.replacement_reason,
+    travelPurpose: application.travel_purpose,
+    travelCountries: application.travel_countries ? JSON.parse(application.travel_countries) : null,
+    travelDepartureDate: application.travel_departure_date,
+    travelReturnDate: application.travel_return_date,
+    status: application.status,
+    submittedAt: application.submitted_at,
+    reviewedAt: application.reviewed_at,
+    reviewedBy: application.reviewed_by,
+    notes: application.notes,
+    baseFee: application.base_fee,
+    expressFee: application.express_fee,
+    serviceFee: application.service_fee,
+    totalFee: application.total_fee,
+    createdAt: application.created_at,
+    updatedAt: application.updated_at,
+    // Include user data if joined
+    user: application.first_name ? {
+      firstName: application.first_name,
+      lastName: application.last_name,
+      email: application.email,
+      nationalId: application.national_id
+    } : null
   };
-  
-  if (!validTransitions[this.status].includes(newStatus)) {
-    throw new Error(`Invalid status transition from ${this.status} to ${newStatus}`);
-  }
-  
-  this.status = newStatus;
-  this.lastModifiedBy = updatedBy;
-  
-  if (notes) {
-    this.addNote(notes, updatedBy, 'general', false);
-  }
-  
-  return this.save();
-};
+}
 
-// Ensure virtual fields are serialized
-ApplicationSchema.set('toJSON', {
-  virtuals: true,
-  transform: function(doc, ret) {
-    return ret;
-  }
-});
+// Helper function to convert camelCase to snake_case
+function camelToSnake(str) {
+  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+}
 
-export default mongoose.models.Application || mongoose.model('Application', ApplicationSchema); 
+export default Application; 

@@ -116,14 +116,14 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href="/applications/new" className="card-sudan p-6 hover:shadow-xl transition-shadow">
+          <Link href="/apply" className="card-sudan p-6 hover:shadow-xl transition-shadow">
             <div className="flex items-center">
               <div className="bg-sudan-red/10 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
                 <span className="text-sudan-red text-xl">📄</span>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">New Application</h3>
-                <p className="text-gray-600 text-sm">Start passport renewal</p>
+                <p className="text-gray-600 text-sm">Start passport application</p>
               </div>
             </div>
           </Link>
@@ -174,7 +174,7 @@ export default function DashboardPage() {
                 <p className="text-gray-600 mb-4">
                   You haven't submitted any passport renewal applications yet.
                 </p>
-                <Link href="/applications/new" className="btn-sudan">
+                <Link href="/apply" className="btn-sudan">
                   Start New Application
                 </Link>
               </div>

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import connectDB from '@/lib/mongodb';
-import { Application, AuditLog } from '@/models';
+import { authOptions } from '../../../lib/auth.js';
+import { Application } from '../../../models/Application.js';
+import { createAuditLog } from '../../../lib/auditLog.js';
 
 // GET /api/applications - Get user's applications
 export async function GET(request) {
@@ -16,37 +16,19 @@ export async function GET(request) {
       );
     }
 
-    await connectDB();
-
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 10;
     const status = searchParams.get('status');
 
-    // Build query
-    const query = { userId: session.user.id };
-    if (status) {
-      query.status = status;
-    }
-
     // Get applications with pagination
-    const applications = await Application.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .populate('userId', 'firstName lastName email');
-
-    const total = await Application.countDocuments(query);
-
-    return NextResponse.json({
-      applications,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+    const result = Application.findByUserId(session.user.id, {
+      page,
+      limit,
+      status
     });
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Get applications error:', error);
@@ -73,56 +55,59 @@ export async function POST(request) {
     
     const {
       applicationType,
-      processingType,
-      currentPassport,
-      personalInfo,
-      contactInfo,
-      emergencyContact,
-      travelInfo
+      processingSpeed,
+      currentPassportNumber,
+      currentPassportIssueDate,
+      currentPassportExpiryDate,
+      currentPassportIssuingOffice,
+      currentPassportStatus,
+      replacementReason,
+      travelPurpose,
+      travelCountries,
+      travelDepartureDate,
+      travelReturnDate
     } = body;
 
     // Basic validation
-    if (!applicationType || !currentPassport || !personalInfo || !contactInfo || !emergencyContact) {
+    if (!applicationType) {
       return NextResponse.json(
         { error: 'Missing required application data' },
         { status: 400 }
       );
     }
 
-    await connectDB();
-
     // Create new application
-    const newApplication = new Application({
+    const applicationData = {
       userId: session.user.id,
-      applicationType: applicationType || 'renewal',
-      processingType: processingType || 'regular',
-      currentPassport,
-      personalInfo,
-      contactInfo,
-      emergencyContact,
-      travelInfo: travelInfo || {},
-      status: 'draft'
-    });
+      applicationType,
+      processingSpeed: processingSpeed || 'regular',
+      currentPassportNumber,
+      currentPassportIssueDate,
+      currentPassportExpiryDate,
+      currentPassportIssuingOffice,
+      currentPassportStatus,
+      replacementReason,
+      travelPurpose,
+      travelCountries,
+      travelDepartureDate,
+      travelReturnDate
+    };
 
-    await newApplication.save();
+    const newApplication = Application.create(applicationData);
 
     // Log application creation
-    await AuditLog.logUserAction(
-      'application_created',
-      session.user.id,
-      `New passport application created: ${newApplication.applicationNumber}`,
-      {
-        resourceType: 'application',
-        resourceId: newApplication._id.toString(),
-        resourceName: newApplication.applicationNumber,
-        applicationNumber: newApplication.applicationNumber
-      },
-      {
-        ipAddress: request.headers.get('x-forwarded-for') || 
-                  request.headers.get('x-real-ip') || 'unknown',
-        userAgent: request.headers.get('user-agent') || 'unknown'
+    await createAuditLog({
+      userId: session.user.id,
+      action: 'APPLICATION_CREATED',
+      resourceType: 'application',
+      resourceId: newApplication.id,
+      ipAddress: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      details: { 
+        applicationNumber: newApplication.applicationNumber,
+        applicationType: newApplication.applicationType
       }
-    );
+    });
 
     return NextResponse.json(
       {
@@ -134,18 +119,6 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Create application error:', error);
-
-    // Log system error
-    await AuditLog.logSystemEvent(
-      'api_error',
-      `Create application API error: ${error.message}`,
-      {
-        resourceType: 'api',
-        resourceId: '/api/applications'
-      },
-      'high'
-    );
-
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
