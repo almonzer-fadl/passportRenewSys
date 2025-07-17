@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../../../../auth/[...nextauth]/route.js';
-import { Document } from '../../../../../../models/Document.js';
-import { createAuditLog } from '../../../../../../lib/auditLog.js';
+import { authOptions } from '../../../../auth/[...nextauth]/route';
+import { Document } from '../../../../../models/Document.js';
+import { createAuditLog } from '../../../../../lib/auditLog.js';
 
 // PATCH /api/admin/documents/[id]/status - Update document validation status
 export async function PATCH(request, { params }) {
