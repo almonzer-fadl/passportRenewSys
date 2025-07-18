@@ -144,52 +144,61 @@ export default function ApplyPage() {
       
       case 2: // Current Passport (only for renewal/replacement)
         if (['renewal', 'replacement'].includes(formData.applicationType)) {
-          if (!formData.currentPassportNumber) {
-            newErrors.currentPassportNumber = 'Current passport number is required';
+          if (!formData.currentPassport?.passportNumber) {
+            newErrors.passportNumber = 'Current passport number is required';
           }
-          if (!formData.currentPassportStatus) {
-            newErrors.currentPassportStatus = 'Please select passport status';
+          if (!formData.currentPassport?.issueDate) {
+            newErrors.issueDate = 'Issue date is required';
+          }
+          if (!formData.currentPassport?.expiryDate) {
+            newErrors.expiryDate = 'Expiry date is required';
+          }
+          if (!formData.currentPassport?.issuingOffice) {
+            newErrors.issuingOffice = 'Issuing office is required';
+          }
+          if (formData.applicationType === 'replacement' && !formData.currentPassport?.replacementReason) {
+            newErrors.replacementReason = 'Replacement reason is required';
           }
         }
         break;
       
       case 3: // Personal Information
-        if (!formData.firstName) newErrors.firstName = 'First name is required';
-        if (!formData.lastName) newErrors.lastName = 'Last name is required';
-        if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-        if (!formData.nationalId) newErrors.nationalId = 'National ID is required';
-        if (!formData.gender) newErrors.gender = 'Gender is required';
-        if (!formData.placeOfBirth) newErrors.placeOfBirth = 'Place of birth is required';
+        if (!formData.personalInfo?.firstName) newErrors.firstName = 'First name is required';
+        if (!formData.personalInfo?.lastName) newErrors.lastName = 'Last name is required';
+        if (!formData.personalInfo?.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+        if (!formData.personalInfo?.nationalId) newErrors.nationalId = 'National ID is required';
+        if (!formData.personalInfo?.gender) newErrors.gender = 'Gender is required';
+        if (!formData.personalInfo?.placeOfBirth) newErrors.placeOfBirth = 'Place of birth is required';
         break;
       
       case 4: // Contact Information
-        if (!formData.phone) newErrors.phone = 'Phone number is required';
-        if (!formData.address) newErrors.address = 'Address is required';
-        if (!formData.city) newErrors.city = 'City is required';
-        if (!formData.state) newErrors.state = 'State is required';
-        if (!formData.country) newErrors.country = 'Country is required';
+        if (!formData.contactInfo?.phoneNumber) newErrors.phoneNumber = 'Phone number is required';
+        if (!formData.contactInfo?.address?.street) newErrors.street = 'Address is required';
+        if (!formData.contactInfo?.address?.city) newErrors.city = 'City is required';
+        if (!formData.contactInfo?.address?.state) newErrors.state = 'State is required';
+        if (!formData.contactInfo?.address?.country) newErrors.country = 'Country is required';
         break;
       
       case 5: // Emergency Contact
-        if (!formData.emergencyContactName) newErrors.emergencyContactName = 'Emergency contact name is required';
-        if (!formData.emergencyContactPhone) newErrors.emergencyContactPhone = 'Emergency contact phone is required';
-        if (!formData.emergencyContactRelationship) newErrors.emergencyContactRelationship = 'Relationship is required';
+        if (!formData.emergencyContact?.name) newErrors.emergencyContactName = 'Emergency contact name is required';
+        if (!formData.emergencyContact?.phoneNumber) newErrors.emergencyContactPhone = 'Emergency contact phone is required';
+        if (!formData.emergencyContact?.relationship) newErrors.emergencyContactRelationship = 'Relationship is required';
         break;
       
       case 6: // Travel Information
-        if (!formData.travelPurpose) newErrors.travelPurpose = 'Travel purpose is required';
-        if (!formData.travelCountries || formData.travelCountries.length === 0) {
+        if (!formData.travelInfo?.purposeOfTravel) newErrors.travelPurpose = 'Travel purpose is required';
+        if (!formData.travelInfo?.intendedCountries || formData.travelInfo?.intendedCountries.length === 0) {
           newErrors.travelCountries = 'At least one travel country is required';
         }
         break;
       
       case 7: // Document Upload
-        if (!formData.passportPhoto) newErrors.passportPhoto = 'Passport photo is required';
-        if (!formData.identityDocument) newErrors.identityDocument = 'Identity document is required';
-        if (!formData.citizenshipDocument) newErrors.citizenshipDocument = 'Proof of citizenship is required';
+        if (!formData.documents?.passportPhoto) newErrors.passportPhoto = 'Passport photo is required';
+        if (!formData.documents?.identityDocument) newErrors.identityDocument = 'Identity document is required';
+        if (!formData.documents?.citizenshipDocument) newErrors.citizenshipDocument = 'Proof of citizenship is required';
         
         // Current passport copy required for renewal/replacement/correction
-        if (['renewal', 'replacement', 'correction'].includes(formData.applicationType) && !formData.currentPassportCopy) {
+        if (['renewal', 'replacement', 'correction'].includes(formData.applicationType) && !formData.documents?.currentPassportCopy) {
           newErrors.currentPassportCopy = 'Current passport copy is required';
         }
         break;
