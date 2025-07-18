@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 // Import step components
@@ -16,7 +15,16 @@ import PaymentStep from '../../components/application/PaymentStep';
 import ReviewStep from '../../components/application/ReviewStep';
 
 export default function ApplyPage() {
-  const { data: session, status } = useSession();
+  // Mock session for demo
+  const session = {
+    user: {
+      id: '1',
+      name: 'Demo User',
+      email: 'demo@passport.gov.sd',
+      firstName: 'Demo',
+      lastName: 'User'
+    }
+  };
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -86,15 +94,7 @@ export default function ApplyPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/login?callbackUrl=/apply');
-    }
-  }, [session, status, router]);
-
-  // Pre-fill email from session
+  // Pre-fill email from demo session
   useEffect(() => {
     if (session?.user?.email) {
       setFormData(prev => ({
@@ -247,16 +247,7 @@ export default function ApplyPage() {
     }
   };
 
-  // Show loading while checking authentication
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!session) return null;
+  // No authentication loading needed for demo
 
   const currentStepData = visibleSteps.find(step => step.number === currentStep);
   const StepComponent = currentStepData?.component;

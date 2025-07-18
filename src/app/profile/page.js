@@ -1,12 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function ProfilePage() {
-  const { data: session, status } = useSession();
+  // Mock session for demo
+  const session = {
+    user: {
+      id: '1',
+      name: 'Demo User',
+      email: 'demo@passport.gov.sd',
+      firstName: 'Demo',
+      lastName: 'User',
+      nationalId: '123456789'
+    }
+  };
+  
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
@@ -15,399 +25,359 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
 
-  // Redirect if not authenticated
+  // Fetch mock user profile and applications
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/login?callbackUrl=/profile');
-    }
-  }, [session, status, router]);
-
-  // Fetch user profile and applications
-  useEffect(() => {
-    if (session) {
-      fetchUserProfile();
-      fetchApplicationHistory();
-    }
-  }, [session]);
+    fetchUserProfile();
+    fetchApplicationHistory();
+  }, []);
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        setFormData(data.user);
-      }
+      // Mock user data
+      const mockUser = {
+        id: '1',
+        name: 'Demo User',
+        firstName: 'Demo',
+        lastName: 'User',
+        email: 'demo@passport.gov.sd',
+        nationalId: '123456789',
+        phone: '+249123456789',
+        address: '123 Demo Street, Khartoum, Sudan',
+        dateOfBirth: '1990-01-01',
+        nationality: 'Sudanese',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      setUser(mockUser);
+      setFormData(mockUser);
     } catch (error) {
       console.error('Error fetching user profile:', error);
-    }
-  };
-
-  const fetchApplicationHistory = async () => {
-    try {
-      const response = await fetch('/api/applications');
-      if (response.ok) {
-        const data = await response.json();
-        setApplications(data.applications || []);
-      }
-    } catch (error) {
-      console.error('Error fetching applications:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSaveProfile = async () => {
+  const fetchApplicationHistory = async () => {
     try {
-      setSaving(true);
-      const response = await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      // Mock applications data
+      const mockApplications = [
+        {
+          id: '1',
+          applicationType: 'new',
+          status: 'submitted',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         },
-        body: JSON.stringify(formData),
-      });
+        {
+          id: '2',
+          applicationType: 'renewal',
+          status: 'under_review',
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      setApplications(mockApplications);
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    }
+  };
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        setEditing(false);
-      } else {
-        alert('Failed to update profile');
-      }
+  const handleEdit = () => {
+    setEditing(true);
+  };
+
+  const handleCancel = () => {
+    setEditing(false);
+    setFormData(user); // Reset form data
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Mock save - just update local state
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
+      setUser(formData);
+      setEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile');
+      alert('Failed to update profile. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [name]: value
     }));
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      'draft': { color: 'gray', label: 'Draft', icon: '📝' },
-      'submitted': { color: 'blue', label: 'Submitted', icon: '📤' },
-      'under_review': { color: 'yellow', label: 'Under Review', icon: '👀' },
-      'approved': { color: 'green', label: 'Approved', icon: '✅' },
-      'rejected': { color: 'red', label: 'Rejected', icon: '❌' },
-      'completed': { color: 'purple', label: 'Completed', icon: '🎉' }
-    };
-
-    const config = statusConfig[status] || statusConfig['draft'];
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-        ${config.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
-        ${config.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
-        ${config.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
-        ${config.color === 'green' ? 'bg-green-100 text-green-800' : ''}
-        ${config.color === 'red' ? 'bg-red-100 text-red-800' : ''}
-        ${config.color === 'purple' ? 'bg-purple-100 text-purple-800' : ''}
-      `}>
-        <span className="mr-1">{config.icon}</span>
-        {config.label}
-      </span>
-    );
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'submitted':
+        return 'badge-info';
+      case 'under_review':
+        return 'badge-warning';
+      case 'approved':
+        return 'badge-success';
+      case 'rejected':
+        return 'badge-error';
+      case 'completed':
+        return 'badge-success';
+      default:
+        return 'badge-neutral';
+    }
   };
 
-  if (status === 'loading' || loading) {
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'submitted':
+        return 'Submitted';
+      case 'under_review':
+        return 'Under Review';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'completed':
+        return 'Completed';
+      default:
+        return status;
+    }
+  };
+
+  const getApplicationTypeText = (type) => {
+    switch (type) {
+      case 'new':
+        return 'New Passport';
+      case 'renewal':
+        return 'Passport Renewal';
+      case 'replacement':
+        return 'Passport Replacement';
+      case 'correction':
+        return 'Data Correction';
+      default:
+        return type;
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
-  }
-
-  if (!session) {
-    return null; // Will redirect via useEffect
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">User Profile</h1>
-              <p className="text-gray-600">Manage your account and view application history</p>
-            </div>
-            <Link
-              href="/dashboard"
-              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
+      <div className="navbar bg-primary text-primary-content">
+        <div className="navbar-start">
+          <Link href="/" className="btn btn-ghost text-xl">
+            🇸🇩 Sudan Passport System
+          </Link>
+        </div>
+        <div className="navbar-center">
+          <h1 className="text-lg font-semibold">Profile</h1>
+        </div>
+        <div className="navbar-end">
+          <Link href="/dashboard" className="btn btn-ghost">
+            Dashboard
+          </Link>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
-          <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-medium text-gray-900">Personal Information</h2>
-                  {!editing ? (
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700"
-                    >
-                      Edit Profile
-                    </button>
-                  ) : (
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => {
-                          setEditing(false);
-                          setFormData(user);
-                        }}
-                        className="bg-gray-600 text-white px-4 py-2 rounded-md text-sm hover:bg-gray-700"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleSaveProfile}
-                        disabled={saving}
-                        className="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
-                      >
-                        {saving ? 'Saving...' : 'Save Changes'}
-                      </button>
-                    </div>
-                  )}
+      <div className="container mx-auto px-4 py-8">
+        {/* Profile Card */}
+        <div className="card bg-base-100 shadow-xl mb-8">
+          <div className="card-body">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="card-title text-2xl">Personal Information</h2>
+              {!editing ? (
+                <button onClick={handleEdit} className="btn btn-primary">
+                  Edit Profile
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={handleSave} 
+                    className={`btn btn-success ${saving ? 'loading' : ''}`}
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button onClick={handleCancel} className="btn btn-outline">
+                    Cancel
+                  </button>
                 </div>
-              </div>
-              
-              <div className="p-6">
-                {user && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        First Name
-                      </label>
-                      {editing ? (
-                        <input
-                          type="text"
-                          value={formData.first_name || ''}
-                          onChange={(e) => handleInputChange('first_name', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{user.first_name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Last Name
-                      </label>
-                      {editing ? (
-                        <input
-                          type="text"
-                          value={formData.last_name || ''}
-                          onChange={(e) => handleInputChange('last_name', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{user.last_name}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Email
-                      </label>
-                      <p className="text-gray-900">{user.email}</p>
-                      <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Phone Number
-                      </label>
-                      {editing ? (
-                        <input
-                          type="text"
-                          value={formData.phone || ''}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">{user.phone}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Date of Birth
-                      </label>
-                      <p className="text-gray-900">
-                        {user.date_of_birth ? new Date(user.date_of_birth).toLocaleDateString() : 'Not provided'}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        National ID
-                      </label>
-                      <p className="text-gray-900">{user.national_id || 'Not provided'}</p>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Address
-                      </label>
-                      {editing ? (
-                        <textarea
-                          value={formData.address || ''}
-                          onChange={(e) => handleInputChange('address', e.target.value)}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      ) : (
-                        <p className="text-gray-900">
-                          {user.address && user.city && user.state && user.country 
-                            ? `${user.address}, ${user.city}, ${user.state}, ${user.country}`
-                            : 'Not provided'}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
 
-            {/* Application History */}
-            <div className="mt-8 bg-white shadow rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900">Application History</h2>
-              </div>
-              
-              <div className="p-6">
-                {applications.length === 0 ? (
-                  <div className="text-center py-8">
-                    <span className="text-4xl mb-4 block">📄</span>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Applications Yet</h3>
-                    <p className="text-gray-600 mb-4">You haven&apos;t submitted any applications yet.</p>
-                    <Link
-                      href="/apply"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                    >
-                      Start New Application
-                    </Link>
-                  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">First Name</span>
+                </label>
+                {editing ? (
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName || ''}
+                    onChange={handleInputChange}
+                    className="input input-bordered"
+                  />
                 ) : (
-                  <div className="space-y-4">
-                    {applications.slice(0, 5).map((app) => (
-                      <div key={app.id || app._id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h4 className="font-medium text-gray-900">
-                              #{app.application_number || app.applicationNumber}
-                            </h4>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {app.application_type === 'new' ? 'New Passport' :
-                               app.application_type === 'renewal' ? 'Passport Renewal' :
-                               app.application_type === 'replacement' ? 'Passport Replacement' :
-                               app.applicationType || 'Passport Application'}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              Submitted: {new Date(app.created_at || app.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            {getStatusBadge(app.status)}
-                            <div className="mt-2">
-                              <Link
-                                href={`/applications/${app.id || app._id}`}
-                                className="text-blue-600 hover:text-blue-800 text-sm"
-                              >
-                                View Details →
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    {applications.length > 5 && (
-                      <div className="text-center pt-4">
-                        <Link
-                          href="/dashboard"
-                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                        >
-                          View All Applications →
-                        </Link>
-                      </div>
-                    )}
-                  </div>
+                  <div className="p-3 bg-base-200 rounded">{user?.firstName}</div>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Last Name</span>
+                </label>
+                {editing ? (
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName || ''}
+                    onChange={handleInputChange}
+                    className="input input-bordered"
+                  />
+                ) : (
+                  <div className="p-3 bg-base-200 rounded">{user?.lastName}</div>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Email</span>
+                </label>
+                {editing ? (
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleInputChange}
+                    className="input input-bordered"
+                  />
+                ) : (
+                  <div className="p-3 bg-base-200 rounded">{user?.email}</div>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">National ID</span>
+                </label>
+                <div className="p-3 bg-base-200 rounded">{user?.nationalId}</div>
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Phone</span>
+                </label>
+                {editing ? (
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone || ''}
+                    onChange={handleInputChange}
+                    className="input input-bordered"
+                  />
+                ) : (
+                  <div className="p-3 bg-base-200 rounded">{user?.phone}</div>
+                )}
+              </div>
+
+              <div className="form-control">
+                <label className="label">
+                  <span className="label-text">Date of Birth</span>
+                </label>
+                <div className="p-3 bg-base-200 rounded">
+                  {user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'Not specified'}
+                </div>
+              </div>
+
+              <div className="form-control md:col-span-2">
+                <label className="label">
+                  <span className="label-text">Address</span>
+                </label>
+                {editing ? (
+                  <textarea
+                    name="address"
+                    value={formData.address || ''}
+                    onChange={handleInputChange}
+                    className="textarea textarea-bordered"
+                    rows="3"
+                  />
+                ) : (
+                  <div className="p-3 bg-base-200 rounded">{user?.address}</div>
                 )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            {/* Account Summary */}
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Account Summary</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total Applications</span>
-                  <span className="text-sm font-medium text-gray-900">{applications.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Completed</span>
-                  <span className="text-sm font-medium text-green-600">
-                    {applications.filter(app => app.status === 'completed').length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">In Progress</span>
-                  <span className="text-sm font-medium text-blue-600">
-                    {applications.filter(app => ['submitted', 'under_review', 'approved'].includes(app.status)).length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Member Since</span>
-                  <span className="text-sm font-medium text-gray-900">
-                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                  </span>
-                </div>
-              </div>
-            </div>
+        {/* Application History */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title text-2xl mb-6">Application History</h2>
 
-            {/* Quick Actions */}
-            <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-              <div className="space-y-3">
-                <Link
-                  href="/apply"
-                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 text-center block"
-                >
-                  New Application
+            {applications.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">📄</div>
+                <h3 className="text-xl font-semibold mb-2">No Applications Yet</h3>
+                <p className="text-base-content/70 mb-4">
+                  You haven't submitted any passport applications yet.
+                </p>
+                <Link href="/apply" className="btn btn-primary">
+                  Submit Your First Application
                 </Link>
-                <Link
-                  href="/dashboard"
-                  className="w-full bg-gray-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-700 text-center block"
-                >
-                  View Dashboard
-                </Link>
-                <button className="w-full bg-yellow-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-yellow-700">
-                  Download Certificate
-                </button>
               </div>
-            </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Application #</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Submitted</th>
+                      <th>Last Updated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map((application) => (
+                      <tr key={application.id}>
+                        <td className="font-mono">#{application.id}</td>
+                        <td>{getApplicationTypeText(application.applicationType)}</td>
+                        <td>
+                          <span className={`badge ${getStatusColor(application.status)}`}>
+                            {getStatusText(application.status)}
+                          </span>
+                        </td>
+                        <td>{new Date(application.createdAt).toLocaleDateString()}</td>
+                        <td>{new Date(application.updatedAt).toLocaleDateString()}</td>
+                        <td>
+                          <Link 
+                            href={`/dashboard/applications/${application.id}`} 
+                            className="btn btn-sm btn-outline"
+                          >
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       </div>

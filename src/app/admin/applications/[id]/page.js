@@ -1,11 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 
 export default function AdminApplicationReview() {
-  const { data: session, status } = useSession();
+  // Mock admin session for demo
+  const session = {
+    user: {
+      id: '1',
+      name: 'Admin User',
+      email: 'admin@passport.gov.sd',
+      role: 'admin'
+    }
+  };
+  
   const router = useRouter();
   const params = useParams();
   const [application, setApplication] = useState(null);
@@ -14,20 +22,6 @@ export default function AdminApplicationReview() {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [notes, setNotes] = useState('');
-
-  // Check if user is admin
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/login?callbackUrl=/admin');
-      return;
-    }
-    
-    if (session.user.email !== 'demo@passport.gov.sd') {
-      router.push('/dashboard');
-      return;
-    }
-  }, [session, status, router]);
 
   // Fetch application details
   const fetchApplicationDetails = useCallback(async () => {
@@ -154,10 +148,10 @@ export default function AdminApplicationReview() {
     </div>
   );
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }

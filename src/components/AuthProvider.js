@@ -1,16 +1,6 @@
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
-
+// Demo AuthProvider - no authentication needed for demo
 export default function AuthProvider({ children }) {
-  return (
-    <SessionProvider
-      // Optional: force session refresh every 5 minutes
-      refetchInterval={5 * 60}
-      // Optional: force session refresh when window is focused
-      refetchOnWindowFocus={true}
-    >
-      {children}
-    </SessionProvider>
-  );
+  return children;
 } 

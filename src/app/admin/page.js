@@ -1,11 +1,18 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession();
+  // Mock admin session for demo
+  const session = {
+    user: {
+      id: '1',
+      name: 'Admin User',
+      email: 'admin@passport.gov.sd',
+      role: 'admin'
+    }
+  };
   const router = useRouter();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,64 +29,123 @@ export default function AdminDashboard() {
     rejected: 0
   });
 
-  // Check if user is admin (in a real app, this would be a proper role check)
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/login?callbackUrl=/admin');
-      return;
-    }
-    
-    // Simple admin check - in production, use proper role management
-    if (session.user.email !== 'demo@passport.gov.sd') {
-      router.push('/dashboard');
-      return;
-    }
-  }, [session, status, router]);
-
-  // Fetch applications
+  // Fetch mock applications
   const fetchApplications = useCallback(async () => {
     try {
       setLoading(true);
-      const queryParams = new URLSearchParams();
       
-      if (filters.status !== 'all') queryParams.append('status', filters.status);
-      if (filters.type !== 'all') queryParams.append('type', filters.type);
-      if (filters.search) queryParams.append('search', filters.search);
+      // Mock applications data
+      const mockApplications = [
+        {
+          id: '1',
+          applicationType: 'new',
+          status: 'submitted',
+          personalInfo: {
+            firstName: 'Ahmed',
+            lastName: 'Hassan',
+            dateOfBirth: '1990-01-01'
+          },
+          contactInfo: {
+            email: 'ahmed@example.com',
+            phone: '+249123456789'
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          applicationType: 'renewal',
+          status: 'under_review',
+          personalInfo: {
+            firstName: 'Fatima',
+            lastName: 'Ali',
+            dateOfBirth: '1985-05-15'
+          },
+          contactInfo: {
+            email: 'fatima@example.com',
+            phone: '+249987654321'
+          },
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: '3',
+          applicationType: 'replacement',
+          status: 'approved',
+          personalInfo: {
+            firstName: 'Omar',
+            lastName: 'Ibrahim',
+            dateOfBirth: '1992-12-20'
+          },
+          contactInfo: {
+            email: 'omar@example.com',
+            phone: '+249555123456'
+          },
+          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
       
-      const response = await fetch(`/api/admin/applications?${queryParams}`);
-      if (response.ok) {
-        const data = await response.json();
-        setApplications(data.applications || []);
-        setStats(data.stats || stats);
+      // Filter applications based on current filters
+      let filteredApplications = mockApplications;
+      
+      if (filters.status !== 'all') {
+        filteredApplications = filteredApplications.filter(app => app.status === filters.status);
       }
+      
+      if (filters.type !== 'all') {
+        filteredApplications = filteredApplications.filter(app => app.applicationType === filters.type);
+      }
+      
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filteredApplications = filteredApplications.filter(app => 
+          app.personalInfo.firstName.toLowerCase().includes(searchLower) ||
+          app.personalInfo.lastName.toLowerCase().includes(searchLower) ||
+          app.contactInfo.email.toLowerCase().includes(searchLower) ||
+          app.id.includes(searchLower)
+        );
+      }
+      
+      setApplications(filteredApplications);
+      
+      // Calculate mock stats
+      const mockStats = {
+        total: mockApplications.length,
+        pending: mockApplications.filter(app => app.status === 'submitted').length,
+        underReview: mockApplications.filter(app => app.status === 'under_review').length,
+        approved: mockApplications.filter(app => app.status === 'approved').length,
+        rejected: mockApplications.filter(app => app.status === 'rejected').length
+      };
+      
+      setStats(mockStats);
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
       setLoading(false);
     }
-  }, [filters, stats]);
+  }, [filters]);
 
   useEffect(() => {
-    if (session?.user?.email === 'demo@passport.gov.sd') {
-      fetchApplications();
-    }
-    }, [session, fetchApplications]);
+    fetchApplications();
+  }, [fetchApplications]);
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {
-      const response = await fetch(`/api/admin/applications/${applicationId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (response.ok) {
-        // Refresh applications list
-        fetchApplications();
-      }
+      // Mock status update - just update local state
+      setApplications(prev => 
+        prev.map(app => 
+          app.id === applicationId 
+            ? { ...app, status: newStatus, updatedAt: new Date().toISOString() }
+            : app
+        )
+      );
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refresh to update stats
+      fetchApplications();
     } catch (error) {
       console.error('Error updating status:', error);
     }
@@ -129,10 +195,10 @@ export default function AdminDashboard() {
     );
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }

@@ -1,31 +1,14 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function Home() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
   const { t } = useLanguage();
 
-  // Redirect logged-in users to dashboard
-  useEffect(() => {
-    if (session && status !== 'loading') {
-      router.push('/dashboard');
-    }
-  }, [session, status, router]);
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sudan-red"></div>
-      </div>
-    );
-  }
+  // Mock session for demo - no session means show landing page
+  const session = null;
 
   return (
     <div className="min-h-screen bg-white">
