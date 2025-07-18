@@ -1,11 +1,22 @@
 'use client';
 
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LanguageSwitcher() {
   const { locale, toggleLanguage } = useLanguage();
   const [isToggling, setIsToggling] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <div className="w-20 h-8 bg-base-300 animate-pulse rounded"></div>
+    );
+  }
 
   const handleToggle = async () => {
     setIsToggling(true);
