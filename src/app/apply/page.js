@@ -137,8 +137,8 @@ export default function ApplyPage() {
         if (!formData.applicationType) {
           newErrors.applicationType = 'Please select an application type';
         }
-        if (!formData.processingSpeed) {
-          newErrors.processingSpeed = 'Please select processing speed';
+        if (!formData.processingType) {
+          newErrors.processingType = 'Please select processing speed';
         }
         break;
       

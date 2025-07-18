@@ -36,8 +36,8 @@ export default function Home() {
               <span className="text-primary font-bold text-xl">🇸🇩</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold">Sudan Passport System</h1>
-              <p className="text-xs opacity-70">Ministry of Interior</p>
+              <h1 className="text-xl font-bold">{t('homepage.title')}</h1>
+              <p className="text-xs opacity-70">{t('homepage.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -45,10 +45,10 @@ export default function Home() {
           <div className="flex items-center space-x-4">
             <LanguageSwitcher />
             <Link href="/auth/login" className="btn btn-outline btn-sm">
-              Login
+              {t('navigation.login')}
             </Link>
             <Link href="/apply" className="btn btn-secondary btn-sm">
-              Apply Now
+              {t('navigation.apply')}
             </Link>
           </div>
         </div>
@@ -59,11 +59,10 @@ export default function Home() {
         <div className="hero-content text-center">
           <div className="max-w-4xl">
             <h1 className="text-5xl font-bold mb-6">
-              Sudan Passport <span className="text-primary">Renewal System</span>
+              {t('homepage.heroTitle')} <span className="text-primary">{t('homepage.heroSubtitle')}</span>
             </h1>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Secure, fast, and convenient online passport renewal service for Sudanese citizens. 
-              Apply from anywhere in the world with our digital platform.
+              {t('homepage.heroDescription')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/apply" className="btn btn-primary btn-lg">
