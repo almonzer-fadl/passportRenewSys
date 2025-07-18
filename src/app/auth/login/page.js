@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function LoginPage() {
+function LoginForm() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: 'demo@passport.gov.sd',
+    password: 'demo123'
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -16,7 +15,6 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  const authError = searchParams.get('error');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,19 +22,16 @@ export default function LoginPage() {
     setError('');
 
     try {
-      const result = await signIn('credentials', {
-        email: formData.email,
-        password: formData.password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Invalid email or password. Please try again.');
-      } else {
+      // Demo login - just check demo credentials
+      if (formData.email === 'demo@passport.gov.sd' && formData.password === 'demo123') {
+        // Simulate loading
+        await new Promise(resolve => setTimeout(resolve, 1000));
         router.push(callbackUrl);
+      } else {
+        setError('Invalid credentials. Use demo@passport.gov.sd / demo123');
       }
     } catch (error) {
-      setError('An error occurred. Please try again.');
+      setError('Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -50,138 +45,102 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sudan-red/10 via-white to-sudan-blue/10 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="bg-sudan-red w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-3xl font-bold">🇸🇩</span>
+    <div className="min-h-screen bg-base-200 flex items-center justify-center">
+      <div className="card w-full max-w-md bg-base-100 shadow-xl">
+        <div className="card-body">
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-4">🇸🇩</div>
+            <h1 className="text-2xl font-bold">Sudan Passport System</h1>
+            <p className="text-base-content/70">Sign in to your account</p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Sudan Passport Services
-          </h1>
-          <p className="text-gray-600">
-            Sign in to your passport renewal account
-          </p>
-        </div>
 
-        {/* Error Messages */}
-        {authError && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">
-              {authError === 'unauthorized' && 'You need to log in to access this page.'}
-              {authError === 'Configuration' && 'Authentication configuration error.'}
-              {authError !== 'unauthorized' && authError !== 'Configuration' && 'An authentication error occurred.'}
-            </p>
-          </div>
-        )}
+          {error && (
+            <div className="alert alert-error mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>{error}</span>
+            </div>
+          )}
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">{error}</p>
-          </div>
-        )}
-
-        {/* Login Form */}
-        <div className="card-sudan p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Email</span>
               </label>
               <input
-                id="email"
-                name="email"
                 type="email"
-                required
-                className="input-sudan"
-                placeholder="your.email@example.com"
+                name="email"
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isLoading}
+                placeholder="Enter your email"
+                className="input input-bordered"
+                required
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Password</span>
               </label>
               <input
-                id="password"
-                name="password"
                 type="password"
-                required
-                className="input-sudan"
-                placeholder="Enter your password"
+                name="password"
                 value={formData.password}
                 onChange={handleChange}
-                disabled={isLoading}
+                placeholder="Enter your password"
+                className="input input-bordered"
+                required
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-sudan-red focus:ring-sudan-red border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-
-              <Link href="/auth/forgot-password" className="text-sm text-sudan-red hover:text-sudan-red/80">
-                Forgot password?
-              </Link>
+            <div className="form-control mt-6">
+              <button 
+                type="submit" 
+                className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </button>
             </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn-sudan w-full"
-            >
-              {isLoading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Signing in...
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
           </form>
 
-          {/* Register Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/auth/register" className="text-sudan-red hover:text-sudan-red/80 font-medium">
-                Register for passport services
+          <div className="divider">Demo Credentials</div>
+          
+          <div className="bg-base-200 rounded-lg p-4 text-sm">
+            <p className="font-semibold mb-2">Demo Account:</p>
+            <p><strong>Email:</strong> demo@passport.gov.sd</p>
+            <p><strong>Password:</strong> demo123</p>
+          </div>
+
+          <div className="text-center mt-4">
+            <p className="text-sm text-base-content/70">
+              Don't have an account?{' '}
+              <Link href="/auth/register" className="link link-primary">
+                Register here
               </Link>
             </p>
           </div>
 
-          {/* Demo Account Info */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-800 mb-2">Demo Account</h4>
-            <p className="text-xs text-blue-600 mb-1">
-              <strong>Email:</strong> demo@passport.gov.sd
-            </p>
-            <p className="text-xs text-blue-600">
-              <strong>Password:</strong> Demo123456!
-            </p>
+          <div className="text-center mt-2">
+            <Link href="/" className="link link-secondary text-sm">
+              ← Back to Home
+            </Link>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-xs text-gray-500">
-            © 2024 Republic of Sudan - Ministry of Interior
-          </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 } 

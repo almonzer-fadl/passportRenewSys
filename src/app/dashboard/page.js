@@ -1,12 +1,10 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [applications, setApplications] = useState([]);
@@ -14,11 +12,22 @@ export default function DashboardPage() {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [submittedAppNumber, setSubmittedAppNumber] = useState(null);
 
-  useEffect(() => {
-    if (session) {
-      fetchApplications();
+  // Mock session data for demo
+  const session = {
+    user: {
+      id: '1',
+      name: 'Demo User',
+      email: 'demo@passport.gov.sd',
+      firstName: 'Demo',
+      lastName: 'User',
+      nationalId: '123456789'
     }
-  }, [session]);
+  };
+
+  useEffect(() => {
+    // Mock fetching applications with demo data
+    fetchApplications();
+  }, []);
 
   // Check for success message from application submission
   useEffect(() => {
@@ -28,23 +37,50 @@ export default function DashboardPage() {
       setShowSuccessMessage(true);
       
       // Remove the query parameter from URL without page reload
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
+      const url = new URL(window.location);
+      url.searchParams.delete('submitted');
+      window.history.replaceState({}, '', url);
       
-      // Hide success message after 10 seconds
+      // Hide message after 5 seconds
       setTimeout(() => {
         setShowSuccessMessage(false);
-      }, 10000);
+      }, 5000);
     }
   }, [searchParams]);
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/applications');
-      if (response.ok) {
-        const data = await response.json();
-        setApplications(data.applications || []);
-      }
+      setLoading(true);
+      
+      // Mock applications data for demo
+      const mockApplications = [
+        {
+          id: '1',
+          applicationType: 'new',
+          status: 'submitted',
+          personalInfo: {
+            firstName: 'Demo',
+            lastName: 'User',
+            dateOfBirth: '1990-01-01'
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          applicationType: 'renewal',
+          status: 'under_review',
+          personalInfo: {
+            firstName: 'Demo',
+            lastName: 'User',
+            dateOfBirth: '1990-01-01'
+          },
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      
+      setApplications(mockApplications);
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
@@ -52,362 +88,267 @@ export default function DashboardPage() {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      'draft': { color: 'gray', label: 'Draft', icon: '📝' },
-      'submitted': { color: 'blue', label: 'Submitted', icon: '📤' },
-      'under_review': { color: 'yellow', label: 'Under Review', icon: '👀' },
-      'approved': { color: 'green', label: 'Approved', icon: '✅' },
-      'rejected': { color: 'red', label: 'Rejected', icon: '❌' },
-      'completed': { color: 'purple', label: 'Completed', icon: '🎉' }
-    };
-
-    const config = statusConfig[status] || statusConfig['draft'];
-    
-    return (
-      <div className="flex items-center space-x-2">
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-          ${config.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
-          ${config.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
-          ${config.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
-          ${config.color === 'green' ? 'bg-green-100 text-green-800' : ''}
-          ${config.color === 'red' ? 'bg-red-100 text-red-800' : ''}
-          ${config.color === 'purple' ? 'bg-purple-100 text-purple-800' : ''}
-        `}>
-          <span className="mr-1">{config.icon}</span>
-          {config.label}
-        </span>
-      </div>
-    );
+  const handleSignOut = () => {
+    // Mock sign out - redirect to home
+    router.push('/');
   };
 
-  const getStatusProgress = (status) => {
-    const statusOrder = ['submitted', 'under_review', 'approved', 'completed'];
-    const currentIndex = statusOrder.indexOf(status);
-    
-    if (currentIndex === -1) return 0;
-    return ((currentIndex + 1) / statusOrder.length) * 100;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'submitted':
+        return 'badge-info';
+      case 'under_review':
+        return 'badge-warning';
+      case 'approved':
+        return 'badge-success';
+      case 'rejected':
+        return 'badge-error';
+      case 'completed':
+        return 'badge-success';
+      default:
+        return 'badge-neutral';
+    }
   };
 
-  const getExpectedTimeline = (processingSpeed, status) => {
-    const isExpress = processingSpeed === 'express';
-    const baseDays = isExpress ? 7 : 14;
-    
-    const timelines = {
-      'submitted': 'Application received and queued for review',
-      'under_review': `Expected completion in ${baseDays - 3} days`,
-      'approved': `Processing passport - ${Math.ceil(baseDays / 2)} days remaining`,
-      'completed': 'Ready for collection'
-    };
-    
-    return timelines[status] || 'Processing...';
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'submitted':
+        return 'Submitted';
+      case 'under_review':
+        return 'Under Review';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'completed':
+        return 'Completed';
+      default:
+        return status;
+    }
   };
 
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sudan-red"></div>
-      </div>
-    );
-  }
+  const getApplicationTypeText = (type) => {
+    switch (type) {
+      case 'new':
+        return 'New Passport';
+      case 'renewal':
+        return 'Passport Renewal';
+      case 'replacement':
+        return 'Passport Replacement';
+      case 'correction':
+        return 'Data Correction';
+      default:
+        return type;
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-base-200">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="bg-sudan-red w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                <span className="text-white text-lg font-bold">🇸🇩</span>
+      <div className="navbar bg-primary text-primary-content">
+        <div className="navbar-start">
+          <Link href="/" className="btn btn-ghost text-xl">
+            🇸🇩 Sudan Passport System
+          </Link>
+        </div>
+        <div className="navbar-center">
+          <h1 className="text-lg font-semibold">Dashboard</h1>
+        </div>
+        <div className="navbar-end">
+          <div className="dropdown dropdown-end">
+            <div tabIndex={0} role="button" className="btn btn-ghost">
+              <div className="flex items-center gap-2">
+                <div className="avatar placeholder">
+                  <div className="bg-neutral-focus text-neutral-content rounded-full w-8">
+                    <span className="text-xs">{session?.user?.firstName?.[0]}{session?.user?.lastName?.[0]}</span>
+                  </div>
+                </div>
+                <span className="hidden md:inline">{session?.user?.name}</span>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Sudan Passport Services
-              </h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                Welcome, {session?.user?.firstName || session?.user?.name}
-              </span>
-              {session?.user?.email === 'demo@passport.gov.sd' && (
-                <Link
-                  href="/admin"
-                  className="bg-purple-600 text-white px-3 py-1 rounded-md text-sm hover:bg-purple-700"
-                >
-                  Admin Dashboard
-                </Link>
-              )}
-              <button
-                onClick={() => signOut()}
-                className="btn-sudan-outline text-sm"
-              >
-                Sign Out
-              </button>
-            </div>
+            <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
+              <li><Link href="/profile">Profile</Link></li>
+              <li><button onClick={handleSignOut}>Sign Out</button></li>
+            </ul>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto px-4 py-8">
         {/* Success Message */}
-        {showSuccessMessage && submittedAppNumber && (
-          <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  Application Submitted Successfully! 🎉
-                </h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p>
-                    Your passport application <strong>{submittedAppNumber}</strong> has been submitted successfully.
-                    You will receive email notifications as your application progresses.
-                  </p>
-                </div>
-                <div className="mt-4">
-                  <button
-                    onClick={() => setShowSuccessMessage(false)}
-                    className="text-green-800 hover:text-green-900 text-sm font-medium"
-                  >
-                    Dismiss
-                  </button>
-                </div>
-              </div>
-            </div>
+        {showSuccessMessage && (
+          <div className="alert alert-success mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>
+              Application #{submittedAppNumber} submitted successfully! You will receive email updates as your application progresses.
+            </span>
           </div>
         )}
 
         {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Passport Services Dashboard
-          </h2>
-          <p className="text-gray-600">
-            Manage your passport renewal applications and track their status
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Link href="/apply" className="card-sudan p-6 hover:shadow-xl transition-shadow">
-            <div className="flex items-center">
-              <div className="bg-sudan-red/10 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
-                <span className="text-sudan-red text-xl">📄</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">New Application</h3>
-                <p className="text-gray-600 text-sm">Start passport application</p>
-              </div>
-            </div>
-          </Link>
-
-          <div className="card-sudan p-6">
-            <div className="flex items-center">
-              <div className="bg-blue-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
-                <span className="text-blue-600 text-xl">📋</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Track Status</h3>
-                <p className="text-gray-600 text-sm">Check application progress</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="card-sudan p-6">
-            <div className="flex items-center">
-              <div className="bg-green-100 w-12 h-12 rounded-lg flex items-center justify-center mr-4">
-                <span className="text-green-600 text-xl">💳</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Make Payment</h3>
-                <p className="text-gray-600 text-sm">Pay processing fees</p>
-              </div>
+        <div className="hero bg-base-100 rounded-lg shadow-lg mb-8">
+          <div className="hero-content text-center">
+            <div className="max-w-md">
+              <h1 className="text-3xl font-bold">Welcome, {session?.user?.firstName}!</h1>
+              <p className="py-6">
+                Manage your passport applications and track their progress from your dashboard.
+              </p>
+              <Link href="/apply" className="btn btn-primary">
+                New Application
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Applications Section */}
-        <div className="card-sudan">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Your Applications</h3>
+        {/* Quick Stats */}
+        <div className="stats stats-vertical lg:stats-horizontal shadow mb-8 w-full">
+          <div className="stat">
+            <div className="stat-title">Total Applications</div>
+            <div className="stat-value">{applications.length}</div>
+            <div className="stat-desc">All time</div>
           </div>
           
-          <div className="p-6">
+          <div className="stat">
+            <div className="stat-title">Pending Review</div>
+            <div className="stat-value text-warning">
+              {applications.filter(app => ['submitted', 'under_review'].includes(app.status)).length}
+            </div>
+            <div className="stat-desc">Awaiting processing</div>
+          </div>
+          
+          <div className="stat">
+            <div className="stat-title">Completed</div>
+            <div className="stat-value text-success">
+              {applications.filter(app => ['approved', 'completed'].includes(app.status)).length}
+            </div>
+            <div className="stat-desc">Ready for pickup</div>
+          </div>
+        </div>
+
+        {/* Applications List */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="card-title text-2xl">Your Applications</h2>
+              <Link href="/apply" className="btn btn-primary btn-sm">
+                + New Application
+              </Link>
+            </div>
+
             {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sudan-red mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading applications...</p>
+              <div className="flex justify-center py-8">
+                <span className="loading loading-spinner loading-lg"></span>
               </div>
             ) : applications.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-gray-400 text-2xl">📄</span>
-                </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">No Applications Yet</h4>
-                <p className="text-gray-600 mb-4">
-                  You haven&apos;t submitted any passport renewal applications yet.
+                <div className="text-4xl mb-4">📄</div>
+                <h3 className="text-xl font-semibold mb-2">No Applications Yet</h3>
+                <p className="text-base-content/70 mb-4">
+                  You haven't submitted any passport applications yet.
                 </p>
-                <Link href="/apply" className="btn-sudan">
-                  Start New Application
+                <Link href="/apply" className="btn btn-primary">
+                  Submit Your First Application
                 </Link>
               </div>
             ) : (
-              <div className="space-y-6">
-                {applications.map((app) => (
-                  <div key={app.id || app._id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                    {/* Application Header */}
-                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            Application #{app.application_number || app.applicationNumber}
-                          </h4>
-                          <div className="flex items-center space-x-4 mt-1">
-                            <span className="text-sm text-gray-600">
-                              {app.application_type === 'new' ? 'New Passport' :
-                               app.application_type === 'renewal' ? 'Passport Renewal' :
-                               app.application_type === 'replacement' ? 'Passport Replacement' :
-                               app.applicationType || 'Passport Application'}
-                            </span>
-                            <span className="text-sm text-gray-500">•</span>
-                            <span className="text-sm text-gray-600">
-                              {app.processing_speed === 'express' || app.processingType === 'express' 
-                                ? 'Express Processing' 
-                                : 'Regular Processing'}
-                            </span>
-                          </div>
-                        </div>
-                        {getStatusBadge(app.status)}
-                      </div>
-                    </div>
-
-                    {/* Application Body */}
-                    <div className="px-6 py-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Left Column - Application Details */}
-                        <div className="space-y-3">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Submitted:</span>
-                            <span className="text-gray-900">
-                              {new Date(app.created_at || app.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Total Fee:</span>
-                            <span className="text-gray-900 font-medium">
-                              ${app.total_fee || 'Calculating...'}
-                            </span>
-                          </div>
-
-                          {app.travel_purpose && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Travel Purpose:</span>
-                              <span className="text-gray-900">{app.travel_purpose}</span>
-                            </div>
-                          )}
-
-                          {app.reviewed_at && (
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Last Updated:</span>
-                              <span className="text-gray-900">
-                                {new Date(app.reviewed_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Right Column - Progress & Timeline */}
-                        <div className="space-y-3">
-                          {/* Progress Bar */}
-                          <div>
-                            <div className="flex justify-between text-sm mb-2">
-                              <span className="text-gray-600">Progress</span>
-                              <span className="text-gray-900">{Math.round(getStatusProgress(app.status))}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                                style={{ width: `${getStatusProgress(app.status)}%` }}
-                              ></div>
-                            </div>
-                          </div>
-
-                          {/* Expected Timeline */}
-                          <div className="bg-blue-50 rounded-lg p-3">
-                            <p className="text-xs font-medium text-blue-800 mb-1">Expected Timeline</p>
-                            <p className="text-sm text-blue-700">
-                              {getExpectedTimeline(app.processing_speed || app.processingType, app.status)}
-                            </p>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex space-x-3">
+              <div className="overflow-x-auto">
+                <table className="table table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Application #</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                      <th>Submitted</th>
+                      <th>Last Updated</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map((application) => (
+                      <tr key={application.id}>
+                        <td className="font-mono">#{application.id}</td>
+                        <td>{getApplicationTypeText(application.applicationType)}</td>
+                        <td>
+                          <span className={`badge ${getStatusColor(application.status)}`}>
+                            {getStatusText(application.status)}
+                          </span>
+                        </td>
+                        <td>{new Date(application.createdAt).toLocaleDateString()}</td>
+                        <td>{new Date(application.updatedAt).toLocaleDateString()}</td>
+                        <td>
+                          <div className="flex gap-2">
                             <Link 
-                              href={`/applications/${app.id || app._id}`}
-                              className="flex-1 text-center bg-blue-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+                              href={`/dashboard/applications/${application.id}`} 
+                              className="btn btn-sm btn-outline"
                             >
-                              View Details
+                              View
                             </Link>
-                            
-                            {app.status === 'completed' && (
-                              <button className="flex-1 text-center bg-green-600 text-white py-2 px-4 rounded-md text-sm font-medium hover:bg-green-700 transition-colors">
-                                Collection Info
+                            {application.status === 'approved' && (
+                              <button className="btn btn-sm btn-success">
+                                Download
                               </button>
                             )}
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Status Notes */}
-                      {app.notes && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <p className="text-xs font-medium text-gray-700 mb-1">Review Notes:</p>
-                          <p className="text-sm text-gray-600 bg-gray-50 rounded p-2">{app.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-sudan-red">{applications.length}</div>
-            <div className="text-sm text-gray-600">Total Applications</div>
-          </div>
-          
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-blue-600">
-              {applications.filter(app => ['submitted', 'under_review', 'in_processing'].includes(app.status)).length}
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body text-center">
+              <div className="text-4xl mb-4">📝</div>
+              <h3 className="card-title justify-center">New Application</h3>
+              <p>Start a new passport application</p>
+              <div className="card-actions justify-center">
+                <Link href="/apply" className="btn btn-primary">Apply Now</Link>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">In Progress</div>
           </div>
-          
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-green-600">
-              {applications.filter(app => app.status === 'completed').length}
+
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body text-center">
+              <div className="text-4xl mb-4">👤</div>
+              <h3 className="card-title justify-center">Profile</h3>
+              <p>Update your personal information</p>
+              <div className="card-actions justify-center">
+                <Link href="/profile" className="btn btn-outline">View Profile</Link>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">Completed</div>
           </div>
-          
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="text-2xl font-bold text-yellow-600">
-              {applications.filter(app => app.status === 'pending_payment').length}
+
+          <div className="card bg-base-100 shadow-xl">
+            <div className="card-body text-center">
+              <div className="text-4xl mb-4">📞</div>
+              <h3 className="card-title justify-center">Support</h3>
+              <p>Need help with your application?</p>
+              <div className="card-actions justify-center">
+                <button className="btn btn-outline">Contact Us</button>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">Pending Payment</div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 } 
