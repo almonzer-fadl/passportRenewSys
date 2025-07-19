@@ -1,6 +1,10 @@
+'use client';
+
 import { useState } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function TravelInfoStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
   const [countryInput, setCountryInput] = useState('');
 
   const handleChange = (field, value) => {
@@ -41,28 +45,28 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
   ];
 
   const purposeOptions = [
-    { value: 'tourism', label: 'Tourism/Leisure', icon: '🏖️' },
-    { value: 'business', label: 'Business', icon: '💼' },
-    { value: 'education', label: 'Education/Study', icon: '🎓' },
-    { value: 'medical', label: 'Medical Treatment', icon: '🏥' },
-    { value: 'family', label: 'Family Visit', icon: '👨‍👩‍👧‍👦' },
-    { value: 'pilgrimage', label: 'Religious Pilgrimage', icon: '🕌' },
-    { value: 'other', label: 'Other', icon: '✈️' }
+    { value: 'tourism', label: t('application.tourism'), icon: '🏖️' },
+    { value: 'business', label: t('application.business'), icon: '💼' },
+    { value: 'education', label: t('application.education'), icon: '🎓' },
+    { value: 'medical', label: t('application.medical'), icon: '🏥' },
+    { value: 'family', label: t('application.family'), icon: '👨‍👩‍👧‍👦' },
+    { value: 'pilgrimage', label: t('application.pilgrimage'), icon: '🕌' },
+    { value: 'other', label: t('application.other'), icon: '✈️' }
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Travel Information</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.travelInfoTitle')}</h2>
         <p className="text-gray-600">
-          Provide details about your intended travel plans. This information helps us process your application appropriately.
+          {t('application.travelInfoDesc')}
         </p>
       </div>
 
       {/* Purpose of Travel */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Primary Purpose of Travel *
+          {t('application.primaryPurpose')} *
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {purposeOptions.map((option) => (
@@ -102,7 +106,7 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
       {/* Intended Countries */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Intended Countries/Destinations
+          {t('application.intendedCountries')}
         </label>
         
         {/* Country Input */}
@@ -112,7 +116,7 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
             value={countryInput}
             onChange={(e) => setCountryInput(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Enter country name"
+            placeholder={t('common.enterCountryName')}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           />
           <button
@@ -121,28 +125,28 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
             disabled={!countryInput.trim()}
             className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add
+            {t('common.add')}
           </button>
         </div>
 
         {/* Popular Destinations Quick Add */}
-        <div className="mb-3">
-          <p className="text-xs text-gray-500 mb-2">Quick add popular destinations:</p>
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">{t('application.popularDestinations')}:</p>
           <div className="flex flex-wrap gap-2">
-            {popularDestinations.map((country) => (
+            {popularDestinations.map((destination) => (
               <button
-                key={country}
+                key={destination}
                 type="button"
                 onClick={() => {
-                  if (!formData.travelInfo.intendedCountries.includes(country)) {
-                    const updatedCountries = [...formData.travelInfo.intendedCountries, country];
+                  if (!formData.travelInfo.intendedCountries.includes(destination)) {
+                    const updatedCountries = [...formData.travelInfo.intendedCountries, destination];
                     handleChange('intendedCountries', updatedCountries);
                   }
                 }}
-                disabled={formData.travelInfo.intendedCountries.includes(country)}
-                className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={formData.travelInfo.intendedCountries.includes(destination)}
+                className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {country}
+                {destination}
               </button>
             ))}
           </div>
@@ -151,14 +155,14 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
         {/* Selected Countries */}
         {formData.travelInfo.intendedCountries.length > 0 && (
           <div>
-            <p className="text-sm font-medium text-gray-700 mb-2">Selected Countries:</p>
+            <p className="text-sm font-medium text-gray-700 mb-2">Selected countries:</p>
             <div className="flex flex-wrap gap-2">
-              {formData.travelInfo.intendedCountries.map((country) => (
-                <div
-                  key={country}
-                  className="flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+              {formData.travelInfo.intendedCountries.map((country, index) => (
+                <span
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
                 >
-                  <span>{country}</span>
+                  {country}
                   <button
                     type="button"
                     onClick={() => removeCountry(country)}
@@ -166,7 +170,7 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
                   >
                     ×
                   </button>
-                </div>
+                </span>
               ))}
             </div>
           </div>
@@ -178,85 +182,70 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
       </div>
 
       {/* Travel Dates */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700">
-            Intended Departure Date
-          </label>
-          <input
-            type="date"
-            id="departureDate"
-            name="departureDate"
-            value={formData.travelInfo.departureDate}
-            onChange={(e) => handleChange('departureDate', e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-            className={`
-              mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
-              ${errors.departureDate ? 'border-red-300' : 'border-gray-300'}
-            `}
-          />
-          <p className="mt-1 text-xs text-gray-500">Optional - for planning purposes</p>
-          {errors.departureDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.departureDate}</p>
-          )}
-        </div>
+      <div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('application.travelDates')}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Departure Date */}
+          <div>
+            <label htmlFor="departureDate" className="block text-sm font-medium text-gray-700">
+              {t('application.departureDate')}
+            </label>
+            <input
+              type="date"
+              id="departureDate"
+              value={formData.travelInfo.departureDate}
+              onChange={(e) => handleChange('departureDate', e.target.value)}
+              min={new Date().toISOString().split('T')[0]}
+              className={`
+                mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
+                ${errors.departureDate ? 'border-red-300' : 'border-gray-300'}
+              `}
+            />
+            {errors.departureDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.departureDate}</p>
+            )}
+          </div>
 
-        <div>
-          <label htmlFor="returnDate" className="block text-sm font-medium text-gray-700">
-            Intended Return Date
-          </label>
-          <input
-            type="date"
-            id="returnDate"
-            name="returnDate"
-            value={formData.travelInfo.returnDate}
-            onChange={(e) => handleChange('returnDate', e.target.value)}
-            min={formData.travelInfo.departureDate || new Date().toISOString().split('T')[0]}
-            className={`
-              mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
-              ${errors.returnDate ? 'border-red-300' : 'border-gray-300'}
-            `}
-          />
-          <p className="mt-1 text-xs text-gray-500">Optional - for planning purposes</p>
-          {errors.returnDate && (
-            <p className="mt-1 text-sm text-red-600">{errors.returnDate}</p>
-          )}
+          {/* Return Date */}
+          <div>
+            <label htmlFor="returnDate" className="block text-sm font-medium text-gray-700">
+              {t('application.returnDate')}
+            </label>
+            <input
+              type="date"
+              id="returnDate"
+              value={formData.travelInfo.returnDate}
+              onChange={(e) => handleChange('returnDate', e.target.value)}
+              min={formData.travelInfo.departureDate || new Date().toISOString().split('T')[0]}
+              className={`
+                mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
+                ${errors.returnDate ? 'border-red-300' : 'border-gray-300'}
+              `}
+            />
+            {errors.returnDate && (
+              <p className="mt-1 text-sm text-red-600">{errors.returnDate}</p>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Date Validation Warning */}
-      {formData.travelInfo.departureDate && formData.travelInfo.returnDate && 
-       new Date(formData.travelInfo.returnDate) <= new Date(formData.travelInfo.departureDate) && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Invalid Dates</h3>
-              <p className="mt-1 text-sm text-red-700">
-                Return date must be after departure date.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Additional Travel Information */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-800 mb-3">Additional Travel Notes (Optional)</h4>
+      {/* Additional Notes */}
+      <div>
+        <label htmlFor="additionalNotes" className="block text-sm font-medium text-gray-700">
+          {t('application.additionalNotes')}
+        </label>
+        <p className="mt-1 text-sm text-gray-500">{t('application.additionalNotesDesc')}</p>
         <textarea
-          rows={3}
+          id="additionalNotes"
+          rows={4}
           value={formData.travelInfo.additionalNotes || ''}
           onChange={(e) => handleChange('additionalNotes', e.target.value)}
-          placeholder="Any additional information about your travel plans, special requirements, or circumstances..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Any specific details about your travel plans..."
+          className="mt-2 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
-      {/* Important Information */}
+      {/* Travel Information Note */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -265,39 +254,18 @@ export default function TravelInfoStep({ formData, updateFormData, errors }) {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Travel Information Notice</h3>
+            <h3 className="text-sm font-medium text-blue-800">{t('application.importantNotice')}</h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Travel dates are for informational purposes and don&apos;t affect passport validity</li>
-                <li>Your new passport will be valid for 10 years from the issue date</li>
-                <li>Some countries require passports to be valid for 6+ months beyond travel dates</li>
-                <li>Check visa requirements for your intended destinations</li>
-                <li>For Hajj/Umrah travel, additional documentation may be required</li>
+                <li>Travel information helps us determine appropriate passport validity period</li>
+                <li>You can add multiple destinations if you plan to visit several countries</li>
+                <li>Dates are estimates - you don't need to have exact travel plans</li>
+                <li>This information may be used for statistical purposes by immigration authorities</li>
               </ul>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Visa Information */}
-      {formData.travelInfo.intendedCountries.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-yellow-800">Visa Requirements Reminder</h3>
-              <p className="mt-1 text-sm text-yellow-700">
-                Remember to check visa requirements for your intended destinations. Some countries require visa applications 
-                to be submitted well in advance of travel. Contact the relevant embassies or consulates for specific requirements.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 } 

@@ -1,4 +1,10 @@
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function ApplicationTypeStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
+  
   const handleChange = (field, value) => {
     updateFormData({ [field]: value });
   };
@@ -6,39 +12,39 @@ export default function ApplicationTypeStep({ formData, updateFormData, errors }
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Application Type</h2>
-        <p className="text-gray-600">Select the type of passport service you need.</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.applicationTypeTitle')}</h2>
+        <p className="text-gray-600">{t('application.typeSelectDescription')}</p>
       </div>
 
       {/* Application Type */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Type of Application *
+          {t('application.typeOfApplication')} *
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             {
               value: 'renewal',
-              title: 'Passport Renewal',
-              description: 'Renew an existing passport that is expiring or has expired',
+              title: t('application.renewal'),
+              description: t('application.renewalDesc'),
               icon: '🔄'
             },
             {
               value: 'new',
-              title: 'New Passport',
-              description: 'Apply for a passport for the first time',
+              title: t('application.newApplication'),
+              description: t('application.newPassportDesc'),
               icon: '📄'
             },
             {
               value: 'replacement',
-              title: 'Passport Replacement',
-              description: 'Replace a lost, stolen, or damaged passport',
+              title: t('application.replacement'),
+              description: t('application.replacementDesc'),
               icon: '🔄'
             },
             {
               value: 'correction',
-              title: 'Passport Correction',
-              description: 'Correct information on an existing passport',
+              title: t('application.correction'),
+              description: t('application.correctionDesc'),
               icon: '✏️'
             }
           ].map((option) => (
@@ -81,23 +87,23 @@ export default function ApplicationTypeStep({ formData, updateFormData, errors }
       {/* Processing Type */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Processing Speed *
+          {t('application.processingSpeed')} *
         </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
             {
               value: 'regular',
-              title: 'Regular Processing',
-              description: '14-21 business days',
-              price: 'Standard Fee',
-              icon: '📅'
+              title: t('application.regular'),
+              description: t('application.regularProcessingPrice'),
+              icon: '📅',
+              price: '$150'
             },
             {
               value: 'express',
-              title: 'Express Processing',
-              description: '7-10 business days',
-              price: 'Additional Express Fee',
-              icon: '⚡'
+              title: t('application.express'),
+              description: t('application.expressProcessingPrice'),
+              icon: '⚡',
+              price: '$225'
             }
           ].map((option) => (
             <div
@@ -146,13 +152,13 @@ export default function ApplicationTypeStep({ formData, updateFormData, errors }
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Important Information</h3>
+            <h3 className="text-sm font-medium text-yellow-800">{t('application.importantInformation')}</h3>
             <div className="mt-2 text-sm text-yellow-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Processing times are estimates and may vary during peak periods</li>
-                <li>Express processing requires additional documentation verification</li>
-                <li>Fees are non-refundable once application is submitted</li>
-                <li>All applicants must appear in person for biometric data collection</li>
+                <li>{t('application.processingTimeNote')}</li>
+                <li>{t('application.expressDocNote')}</li>
+                <li>{t('application.feesNonRefundable')}</li>
+                <li>{t('application.biometricRequired')}</li>
               </ul>
             </div>
           </div>

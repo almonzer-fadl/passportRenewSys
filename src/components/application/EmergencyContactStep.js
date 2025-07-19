@@ -1,4 +1,10 @@
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function EmergencyContactStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
+  
   const handleChange = (field, value) => {
     updateFormData({
       emergencyContact: {
@@ -45,7 +51,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Emergency Contact</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.emergencyContactTitle')}</h2>
         <p className="text-gray-600">
           Provide contact information for someone who can be reached in case of emergency during your travel.
         </p>
@@ -55,7 +61,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
         {/* Contact Name */}
         <div className="md:col-span-2">
           <label htmlFor="emergencyName" className="block text-sm font-medium text-gray-700">
-            Full Name *
+            {t('application.emergencyContactName')} *
           </label>
           <input
             type="text"
@@ -77,7 +83,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
         {/* Relationship */}
         <div>
           <label htmlFor="relationship" className="block text-sm font-medium text-gray-700">
-            Relationship *
+            {t('application.relationship')} *
           </label>
           <select
             id="relationship"
@@ -104,7 +110,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
         {/* Phone Number */}
         <div>
           <label htmlFor="emergencyPhone" className="block text-sm font-medium text-gray-700">
-            Phone Number *
+            {t('auth.phoneNumber')} *
           </label>
           <input
             type="tel"
@@ -130,7 +136,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
         {/* Address */}
         <div className="md:col-span-2">
           <label htmlFor="emergencyAddress" className="block text-sm font-medium text-gray-700">
-            Address *
+            {t('application.emergencyAddress')} *
           </label>
           <textarea
             id="emergencyAddress"
@@ -153,16 +159,16 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
       {/* Additional Emergency Contact (Optional) */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
         <h4 className="text-sm font-medium text-gray-800 mb-3">
-          Additional Emergency Contact (Optional)
+          {t('application.additionalEmergencyContactTitle')} (Optional)
         </h4>
         <p className="text-xs text-gray-600 mb-4">
-          You may provide a second emergency contact for additional safety.
+          {t('application.additionalEmergencyContactDescription')}
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="secondaryName" className="block text-sm font-medium text-gray-700">
-              Full Name
+              {t('application.emergencyContactName')}
             </label>
             <input
               type="text"
@@ -177,7 +183,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
           
           <div>
             <label htmlFor="secondaryRelationship" className="block text-sm font-medium text-gray-700">
-              Relationship
+              {t('application.relationship')}
             </label>
             <select
               id="secondaryRelationship"
@@ -197,7 +203,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
           
           <div>
             <label htmlFor="secondaryPhone" className="block text-sm font-medium text-gray-700">
-              Phone Number
+              {t('auth.phoneNumber')}
             </label>
             <input
               type="tel"
@@ -212,7 +218,7 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
           
           <div>
             <label htmlFor="secondaryAddress" className="block text-sm font-medium text-gray-700">
-              Address
+              {t('application.emergencyAddress')}
             </label>
             <input
               type="text"
@@ -236,15 +242,15 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Emergency Contact Guidelines</h3>
+            <h3 className="text-sm font-medium text-blue-800">{t('application.emergencyContactGuidelinesTitle')}</h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Choose someone who is easily reachable and available</li>
-                <li>Ensure they know about your travel plans and passport application</li>
-                <li>This contact will be notified only in case of emergency</li>
-                <li>Make sure the phone number is active and regularly monitored</li>
-                <li>Consider time zones when choosing international emergency contacts</li>
-                <li>Provide the complete international address including country</li>
+                <li>{t('application.emergencyContactGuidelines1')}</li>
+                <li>{t('application.emergencyContactGuidelines2')}</li>
+                <li>{t('application.emergencyContactGuidelines3')}</li>
+                <li>{t('application.emergencyContactGuidelines4')}</li>
+                <li>{t('application.emergencyContactGuidelines5')}</li>
+                <li>{t('application.emergencyContactGuidelines6')}</li>
               </ul>
             </div>
           </div>
@@ -260,10 +266,9 @@ export default function EmergencyContactStep({ formData, updateFormData, errors 
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-gray-800">Privacy Notice</h3>
+            <h3 className="text-sm font-medium text-gray-800">{t('application.privacyNoticeTitle')}</h3>
             <p className="mt-1 text-sm text-gray-700">
-              Emergency contact information is kept confidential and used only for official passport-related emergencies 
-              or as required by consular services. This information will not be shared with third parties.
+              {t('application.privacyNoticeDescription')}
             </p>
           </div>
         </div>

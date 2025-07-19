@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Image from 'next/image';
 
 export default function DocumentUploadStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
   const [dragOver, setDragOver] = useState({});
 
   const handleFileChange = async (field, files) => {
@@ -205,9 +207,9 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
               <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <div className="text-sm text-gray-600">
-              <span className="font-medium text-blue-600">Click to upload</span> or drag and drop
+              <span className="font-medium text-blue-600">{t('common.clickToUpload')}</span> {t('common.dragAndDrop')}
             </div>
-            <p className="text-xs text-gray-500">PNG, JPG, PDF up to 5MB</p>
+            <p className="text-xs text-gray-500">{t('common.fileFormats')}</p>
           </div>
           <input
             id={`file-${field}`}
@@ -228,41 +230,41 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Document Upload</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.documentUploadTitle')}</h2>
         <p className="text-gray-600">
-          Upload the required documents for your passport application. All documents must be clear and legible.
+          {t('application.documentUploadDesc')}
         </p>
       </div>
 
       {/* Passport Photo */}
       <FileUploadArea
         field="passportPhoto"
-        title="Passport Photo"
-        description="Upload a recent passport-sized photo (2x2 inches, white background, facing forward)"
+        title={t('application.passportPhoto')}
+        description={t('application.passportPhotoDesc')}
         required={true}
       />
 
       {/* Identity Document */}
       <FileUploadArea
         field="identityDocument"
-        title="Identity Document"
-        description="Upload a clear copy of your national ID card or birth certificate"
+        title={t('application.identityDocument')}
+        description={t('application.identityDocumentDesc')}
         required={true}
       />
 
       {/* Proof of Citizenship */}
       <FileUploadArea
         field="citizenshipDocument"
-        title="Proof of Citizenship"
-        description="Upload proof of Sudanese citizenship (birth certificate, naturalization certificate, etc.)"
+        title={t('application.citizenshipDocument')}
+        description={t('application.citizenshipDocumentDesc')}
         required={true}
       />
 
       {/* Supporting Documents */}
       <FileUploadArea
         field="supportingDocument"
-        title="Supporting Documents"
-        description="Upload any additional supporting documents (marriage certificate, court order, etc.)"
+        title={t('application.supportingDocument')}
+        description={t('application.supportingDocumentDesc')}
         required={false}
       />
 
@@ -270,8 +272,8 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
       {['renewal', 'replacement', 'correction'].includes(formData.applicationType) && (
         <FileUploadArea
           field="currentPassportCopy"
-          title="Current Passport Copy"
-          description="Upload a clear copy of your current passport (all pages with stamps/visas)"
+          title={t('application.currentPassportCopy')}
+          description={t('application.currentPassportCopyDesc')}
           required={true}
         />
       )}
@@ -285,14 +287,14 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-amber-800">Document Requirements</h3>
+            <h3 className="text-sm font-medium text-amber-800">{t('application.documentRequirements')}</h3>
             <div className="mt-2 text-sm text-amber-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>All documents must be in clear, high-quality format</li>
-                <li>Photos must have white background and show full face</li>
-                <li>File size limit: 5MB per document</li>
-                <li>Accepted formats: JPEG, PNG, PDF</li>
-                <li>Documents in languages other than Arabic or English must include certified translations</li>
+                <li>{t('application.highQualityFormat')}</li>
+                <li>{t('application.whiteBackground')}</li>
+                <li>{t('application.fileSizeLimit')}</li>
+                <li>{t('application.acceptedFormats')}</li>
+                <li>{t('application.certifiedTranslations')}</li>
               </ul>
             </div>
           </div>

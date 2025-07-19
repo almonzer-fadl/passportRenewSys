@@ -1,4 +1,10 @@
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function PersonalInfoStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
+  
   const handleChange = (field, value) => {
     updateFormData({
       personalInfo: {
@@ -43,15 +49,15 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Personal Information</h2>
-        <p className="text-gray-600">Enter your personal details as they appear on your national ID.</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.personalInfoTitle')}</h2>
+        <p className="text-gray-600">{t('application.personalInfoDesc')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* First Name */}
         <div>
           <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-            First Name *
+            {t('auth.firstName')} *
           </label>
           <input
             type="text"
@@ -72,7 +78,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Last Name */}
         <div>
           <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-            Last Name *
+            {t('auth.lastName')} *
           </label>
           <input
             type="text"
@@ -93,7 +99,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Father's Name */}
         <div>
           <label htmlFor="fatherName" className="block text-sm font-medium text-gray-700">
-            Fathers Name *
+            {t('application.fatherName')} *
           </label>
           <input
             type="text"
@@ -114,7 +120,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Grandfather's Name */}
         <div>
           <label htmlFor="grandfatherName" className="block text-sm font-medium text-gray-700">
-            Grandfathers Name *
+            {t('application.grandfatherName')} *
           </label>
           <input
             type="text"
@@ -135,7 +141,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Mother's Name */}
         <div>
           <label htmlFor="motherName" className="block text-sm font-medium text-gray-700">
-            Mothers Name *
+            {t('application.mothersName')} *
           </label>
           <input
             type="text"
@@ -156,7 +162,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* National ID */}
         <div>
           <label htmlFor="nationalId" className="block text-sm font-medium text-gray-700">
-            National ID Number *
+            {t('application.nationalIdNumber')} *
           </label>
           <input
             type="text"
@@ -171,19 +177,19 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
               ${errors.nationalId ? 'border-red-300' : 'border-gray-300'}
             `}
           />
-          <p className="mt-1 text-xs text-gray-500">10-digit Sudan National ID number</p>
+          <p className="mt-1 text-xs text-gray-500">{t('application.nationalIdFormat')}</p>
           {errors.nationalId && (
             <p className="mt-1 text-sm text-red-600">{errors.nationalId}</p>
           )}
           {formData.personalInfo.nationalId && !validateNationalId(formData.personalInfo.nationalId) && (
-            <p className="mt-1 text-sm text-red-600">National ID must be exactly 10 digits</p>
+            <p className="mt-1 text-sm text-red-600">{t('application.nationalIdValidation')}</p>
           )}
         </div>
 
         {/* Date of Birth */}
         <div>
           <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
-            Date of Birth *
+            {t('application.dateOfBirth')} *
           </label>
           <input
             type="date"
@@ -191,26 +197,26 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
             name="dateOfBirth"
             value={formData.personalInfo.dateOfBirth}
             onChange={(e) => handleChange('dateOfBirth', e.target.value)}
-            max={new Date(Date.now() - 16 * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]} // Minimum 16 years old
+            max={new Date().toISOString().split('T')[0]}
             className={`
               mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
               ${errors.dateOfBirth ? 'border-red-300' : 'border-gray-300'}
             `}
           />
+          {errors.dateOfBirth && (
+            <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
+          )}
           {formData.personalInfo.dateOfBirth && (
             <p className="mt-1 text-xs text-gray-500">
               Age: {calculateAge(formData.personalInfo.dateOfBirth)} years
             </p>
-          )}
-          {errors.dateOfBirth && (
-            <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth}</p>
           )}
         </div>
 
         {/* Place of Birth */}
         <div>
           <label htmlFor="placeOfBirth" className="block text-sm font-medium text-gray-700">
-            Place of Birth *
+            {t('application.placeOfBirth')} *
           </label>
           <select
             id="placeOfBirth"
@@ -222,13 +228,13 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
               ${errors.placeOfBirth ? 'border-red-300' : 'border-gray-300'}
             `}
           >
-            <option value="">Select state</option>
+            <option value="">{t('common.selectState')}</option>
             {sudaneseStates.map((state) => (
               <option key={state} value={state}>
                 {state}
               </option>
             ))}
-            <option value="Other">Other (Outside Sudan)</option>
+            <option value="Other">{t('application.otherOutsideSudan')}</option>
           </select>
           {errors.placeOfBirth && (
             <p className="mt-1 text-sm text-red-600">{errors.placeOfBirth}</p>
@@ -238,37 +244,28 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Gender */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Gender *
+            {t('application.gender')} *
           </label>
-          <div className="flex space-x-4">
-            <div className="flex items-center">
-              <input
-                id="gender_male"
-                name="gender"
-                type="radio"
-                value="male"
-                checked={formData.personalInfo.gender === 'male'}
-                onChange={(e) => handleChange('gender', e.target.value)}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <label htmlFor="gender_male" className="ml-3 text-sm text-gray-700">
-                Male
-              </label>
-            </div>
-            <div className="flex items-center">
-              <input
-                id="gender_female"
-                name="gender"
-                type="radio"
-                value="female"
-                checked={formData.personalInfo.gender === 'female'}
-                onChange={(e) => handleChange('gender', e.target.value)}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-              />
-              <label htmlFor="gender_female" className="ml-3 text-sm text-gray-700">
-                Female
-              </label>
-            </div>
+          <div className="space-y-2">
+            {[
+              { value: 'male', label: t('application.male') },
+              { value: 'female', label: t('application.female') }
+            ].map((gender) => (
+              <div key={gender.value} className="flex items-center">
+                <input
+                  id={`gender_${gender.value}`}
+                  name="gender"
+                  type="radio"
+                  value={gender.value}
+                  checked={formData.personalInfo.gender === gender.value}
+                  onChange={(e) => handleChange('gender', e.target.value)}
+                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor={`gender_${gender.value}`} className="ml-3 text-sm text-gray-700">
+                  {gender.label}
+                </label>
+              </div>
+            ))}
           </div>
           {errors.gender && (
             <p className="mt-2 text-sm text-red-600">{errors.gender}</p>
@@ -278,7 +275,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Marital Status */}
         <div>
           <label htmlFor="maritalStatus" className="block text-sm font-medium text-gray-700">
-            Marital Status *
+            {t('application.maritalStatus')} *
           </label>
           <select
             id="maritalStatus"
@@ -291,10 +288,10 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
             `}
           >
             <option value="">Select status</option>
-            <option value="single">Single</option>
-            <option value="married">Married</option>
-            <option value="divorced">Divorced</option>
-            <option value="widowed">Widowed</option>
+            <option value="single">{t('application.single')}</option>
+            <option value="married">{t('application.married')}</option>
+            <option value="divorced">{t('application.divorced')}</option>
+            <option value="widowed">{t('application.widowed')}</option>
           </select>
           {errors.maritalStatus && (
             <p className="mt-1 text-sm text-red-600">{errors.maritalStatus}</p>
@@ -304,7 +301,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Profession */}
         <div>
           <label htmlFor="profession" className="block text-sm font-medium text-gray-700">
-            Profession/Occupation *
+            {t('application.profession')} *
           </label>
           <input
             type="text"
@@ -312,7 +309,7 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
             name="profession"
             value={formData.personalInfo.profession}
             onChange={(e) => handleChange('profession', e.target.value)}
-            placeholder="e.g., Engineer, Teacher, Student"
+            placeholder="Engineer, Doctor, Teacher, etc."
             className={`
               mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
               ${errors.profession ? 'border-red-300' : 'border-gray-300'}
@@ -326,29 +323,22 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
         {/* Nationality */}
         <div>
           <label htmlFor="nationality" className="block text-sm font-medium text-gray-700">
-            Nationality *
+            {t('application.nationality')} *
           </label>
-          <select
+          <input
+            type="text"
             id="nationality"
             name="nationality"
             value={formData.personalInfo.nationality}
             onChange={(e) => handleChange('nationality', e.target.value)}
-            className={`
-              mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
-              ${errors.nationality ? 'border-red-300' : 'border-gray-300'}
-            `}
-          >
-            <option value="Sudanese">Sudanese</option>
-            <option value="Dual Citizen">Dual Citizen</option>
-            <option value="Other">Other</option>
-          </select>
-          {errors.nationality && (
-            <p className="mt-1 text-sm text-red-600">{errors.nationality}</p>
-          )}
+            readOnly
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-700 cursor-not-allowed"
+          />
+          <p className="mt-1 text-xs text-gray-500">Fixed as Sudanese for Sudan passport applications</p>
         </div>
       </div>
 
-      {/* Age Validation Warning */}
+      {/* Age Warning */}
       {formData.personalInfo.dateOfBirth && calculateAge(formData.personalInfo.dateOfBirth) < 16 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
@@ -358,10 +348,9 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Age Requirement</h3>
+              <h3 className="text-sm font-medium text-red-800">{t('application.ageRequirement')}</h3>
               <p className="mt-1 text-sm text-red-700">
-                Applicants must be at least 16 years old to apply for a passport. For minors under 16, 
-                a guardian must apply on their behalf with additional documentation.
+                {t('application.ageRequirementDesc')}
               </p>
             </div>
           </div>
@@ -377,10 +366,9 @@ export default function PersonalInfoStep({ formData, updateFormData, errors }) {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Important Notice</h3>
+            <h3 className="text-sm font-medium text-blue-800">{t('application.importantNotice')}</h3>
             <p className="mt-1 text-sm text-blue-700">
-              All information must match exactly with your National ID card. Any discrepancies may cause delays 
-              in processing your application. Make sure to double-check all entries before proceeding.
+              {t('application.matchNationalId')}
             </p>
           </div>
         </div>

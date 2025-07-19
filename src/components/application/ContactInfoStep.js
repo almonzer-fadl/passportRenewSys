@@ -1,4 +1,10 @@
+'use client';
+
+import { useLanguage } from '@/contexts/LanguageContext';
+
 export default function ContactInfoStep({ formData, updateFormData, errors }) {
+  const { t } = useLanguage();
+  
   const handleChange = (field, value) => {
     updateFormData({
       contactInfo: {
@@ -89,7 +95,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Contact Information</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.contactInfoTitle')}</h2>
         <p className="text-gray-600">Provide your current contact details and residential address.</p>
       </div>
 
@@ -97,7 +103,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
         {/* Phone Number */}
         <div>
           <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
-            Phone Number *
+            {t('auth.phoneNumber')} *
           </label>
           <input
             type="tel"
@@ -123,7 +129,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Email Address *
+            {t('auth.email')} *
           </label>
           <input
             type="email"
@@ -154,7 +160,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {/* Country - First so it can control state options */}
           <div className="md:col-span-2">
             <label htmlFor="country" className="block text-sm font-medium text-gray-700">
-              Country *
+              {t('application.country')} *
             </label>
             <select
               id="country"
@@ -185,7 +191,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {/* Street Address */}
           <div className="md:col-span-2">
             <label htmlFor="street" className="block text-sm font-medium text-gray-700">
-              Street Address *
+              {t('application.street')} *
             </label>
             <textarea
               id="street"
@@ -207,7 +213,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {/* City */}
           <div>
             <label htmlFor="city" className="block text-sm font-medium text-gray-700">
-              City/Town *
+              {t('application.city')} *
             </label>
             <input
               type="text"
@@ -229,7 +235,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {/* State/Province */}
           <div>
             <label htmlFor="state" className="block text-sm font-medium text-gray-700">
-              State/Province *
+              {t('application.state')} *
             </label>
             {availableStates.length > 0 ? (
               <select
@@ -271,7 +277,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {/* Postal Code */}
           <div>
             <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">
-              Postal/ZIP Code
+              {t('application.postalCode')}
             </label>
             <input
               type="text"
@@ -279,7 +285,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               name="postalCode"
               value={formData.contactInfo.address.postalCode}
               onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-              placeholder="Enter postal or ZIP code"
+              placeholder="Enter postal/ZIP code"
               className={`
                 mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                 ${errors.postalCode ? 'border-red-300' : 'border-gray-300'}
