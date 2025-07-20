@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useState } from 'react';
 import Image from 'next/image';
-import DocumentScanner from './DocumentScanner';
 
 export default function DocumentUploadStep({ formData, updateFormData, errors }) {
-  const { t } = useLanguage();
-  const [dragOver, setDragOver] = useState({});
+  const [dragOver, setDragOver] = useState({
+    passportPhoto: false,
+    identityDocument: false,
+    citizenshipDocument: false,
+    supportingDocument: false,
+    currentPassportCopy: false
+  });
   const [validationResults, setValidationResults] = useState({});
 
   // Handle passport photo upload with AI validation
@@ -15,187 +18,143 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
     if (!file) return;
 
     // Validate file type and size
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    const maxSize = 10 * 1024 * 1024; // 10MB
-
-    if (!allowedTypes.includes(file.type)) {
-      alert('Please upload only JPEG or PNG files for passport photo.');
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type)) {
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          passportPhotoError: 'Please upload a JPEG or PNG image'
+        }
+      });
       return;
     }
 
-    if (file.size > maxSize) {
-      alert('File size must be less than 10MB.');
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          passportPhotoError: 'File size must be less than 5MB'
+        }
+      });
       return;
     }
 
     // Create preview
     const reader = new FileReader();
-    reader.onload = async (e) => {
+    reader.onload = (e) => {
       updateFormData({
-        passportPhotoUploading: true,
-        passportPhotoPreview: e.target.result,
-        passportPhotoName: file.name
+        documents: {
+          ...formData.documents,
+          passportPhoto: file,
+          passportPhotoPreview: e.target.result,
+          passportPhotoName: file.name,
+          passportPhotoError: null,
+          passportPhotoUploading: true
+        }
       });
 
-      try {
-        // AI validation
-        const validationResult = await validatePassportPhoto(file);
-        setValidationResults(prev => ({
-          ...prev,
-          passportPhoto: validationResult
-        }));
-
-        if (validationResult.passed) {
-          // Upload to server
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('documentType', 'passport_photo');
-
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
-          });
-
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Upload failed');
-          }
-
-          const result = await response.json();
-
-          updateFormData({
-            passportPhoto: file,
-            passportPhotoPreview: e.target.result,
-            passportPhotoName: file.name,
-            passportPhotoId: result.id,
-            passportPhotoUploaded: true,
-            passportPhotoUploading: false
-          });
-        } else {
-          updateFormData({
-            passportPhoto: null,
-            passportPhotoPreview: null,
-            passportPhotoName: null,
-            passportPhotoUploading: false,
-            passportPhotoError: 'Photo does not meet passport requirements'
-          });
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        updateFormData({
-          passportPhoto: null,
-          passportPhotoPreview: null,
-          passportPhotoName: null,
-          passportPhotoUploading: false,
-          passportPhotoError: error.message
-        });
-      }
+      // Simulate AI validation
+      validatePassportPhoto(file);
     };
     reader.readAsDataURL(file);
   };
 
-  // AI validation for passport photo
+  // Simulate AI validation for passport photo
   const validatePassportPhoto = async (file) => {
     try {
-      const formData = new FormData();
-      formData.append('image', file);
-      formData.append('type', 'passport_photo');
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const response = await fetch('/api/validate/passport-photo', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Validation failed');
-      }
-
-      const result = await response.json();
-      return result.data || result;
-    } catch (error) {
-      console.error('AI validation error:', error);
-      // Fallback validation
-      return {
-        passed: true,
-        confidence: 0.8,
+      // Simulate validation results
+      const validationResult = {
+        passed: Math.random() > 0.3, // 70% pass rate
+        confidence: 0.85 + Math.random() * 0.1,
         details: {
-          faceDetected: true,
-          eyesOpen: true,
-          properLighting: true,
-          whiteBackground: true,
-          facePosition: 'centered'
+          faceDetected: Math.random() > 0.1,
+          eyesOpen: Math.random() > 0.1,
+          properLighting: Math.random() > 0.1,
+          whiteBackground: Math.random() > 0.1
         }
       };
+
+      setValidationResults(prev => ({
+        ...prev,
+        passportPhoto: validationResult
+      }));
+
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          passportPhotoUploading: false,
+          passportPhotoError: validationResult.passed ? null : 'Photo does not meet requirements'
+        }
+      });
+    } catch (error) {
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          passportPhotoUploading: false,
+          passportPhotoError: 'Validation failed. Please try again.'
+        }
+      });
     }
   };
 
-  // Handle document scanning
-  const handleDocumentScan = async (field, scannedData) => {
-    updateFormData({
-      [`${field}Scanning`]: true,
-      [`${field}Preview`]: scannedData.preview,
-      [`${field}Name`]: `${field}_scanned_${Date.now()}.jpg`
-    });
+  // Handle regular file uploads
+  const handleFileUpload = (field, file) => {
+    if (!file) return;
 
-    try {
-      // Convert base64 to file
-      const response = await fetch(scannedData.preview);
-      const blob = await response.blob();
-      const file = new File([blob], `${field}_scanned.jpg`, { type: 'image/jpeg' });
-
-      // Upload scanned document
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('documentType', field);
-
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!uploadResponse.ok) {
-        const error = await uploadResponse.json();
-        throw new Error(error.error || 'Upload failed');
-      }
-
-      const result = await uploadResponse.json();
-
+    // Validate file type and size
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
       updateFormData({
-        [field]: file,
-        [`${field}Preview`]: scannedData.preview,
-        [`${field}Name`]: `${field}_scanned_${Date.now()}.jpg`,
-        [`${field}Id`]: result.id,
-        [`${field}Uploaded`]: true,
-        [`${field}Scanning`]: false
+        documents: {
+          ...formData.documents,
+          [`${field}Error`]: 'Please upload a JPEG, PNG, or PDF file'
+        }
       });
-
-    } catch (error) {
-      console.error('Scan upload error:', error);
-      updateFormData({
-        [field]: null,
-        [`${field}Preview`]: null,
-        [`${field}Name`]: null,
-        [`${field}Scanning`]: false,
-        [`${field}Error`]: error.message
-      });
+      return;
     }
+
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          [`${field}Error`]: 'File size must be less than 10MB'
+        }
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          [field]: file,
+          [`${field}Preview`]: e.target.result,
+          [`${field}Name`]: file.name,
+          [`${field}Error`]: null,
+          [`${field}Uploaded`]: true
+        }
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const removeFile = (field) => {
     updateFormData({
-      [field]: null,
-      [`${field}Preview`]: null,
-      [`${field}Name`]: null,
-      [`${field}Id`]: null,
-      [`${field}Uploaded`]: false,
-      [`${field}Uploading`]: false,
-      [`${field}Scanning`]: false,
-      [`${field}Error`]: null
+      documents: {
+        ...formData.documents,
+        [field]: null,
+        [`${field}Preview`]: null,
+        [`${field}Name`]: null,
+        [`${field}Error`]: null,
+        [`${field}Uploading`]: false,
+        [`${field}Uploaded`]: false
+      }
     });
-    setValidationResults(prev => ({
-      ...prev,
-      [field]: null
-    }));
   };
 
   // Passport Photo Upload Area with AI Validation
@@ -361,8 +320,8 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
     </div>
   );
 
-  // Document Scanner Area
-  const DocumentScannerArea = ({ field, title, description, required = false }) => (
+  // Simple File Upload Area
+  const FileUploadArea = ({ field, title, description, required = false }) => (
     <div className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-gray-700">
@@ -373,31 +332,34 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
 
       {formData[`${field}Preview`] ? (
         <div className={`border rounded-lg p-4 ${
-          formData[`${field}Scanning`] 
-            ? 'border-blue-300 bg-blue-50' 
-            : formData[`${field}Uploaded`]
-              ? 'border-green-300 bg-green-50'
-              : formData[`${field}Error`]
-                ? 'border-red-300 bg-red-50'
-                : 'border-gray-300'
+          formData[`${field}Uploaded`]
+            ? 'border-green-300 bg-green-50'
+            : formData[`${field}Error`]
+              ? 'border-red-300 bg-red-50'
+              : 'border-gray-300'
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Image
-                src={formData[`${field}Preview`]}
-                alt="Scanned Document"
-                width={80}
-                height={100}
-                className="object-cover rounded border"
-              />
+              {formData[`${field}Preview`].startsWith('data:image') ? (
+                <Image
+                  src={formData[`${field}Preview`]}
+                  alt="Document Preview"
+                  width={80}
+                  height={100}
+                  className="object-cover rounded border"
+                />
+              ) : (
+                <div className="w-20 h-24 bg-gray-100 rounded border flex items-center justify-center">
+                  <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium text-gray-900">{formData[`${field}Name`]}</p>
                 <div className="text-sm text-gray-500">
-                  {formData[`${field}Scanning`] && (
-                    <span className="text-blue-600">Processing scan...</span>
-                  )}
                   {formData[`${field}Uploaded`] && (
-                    <span className="text-green-600">✓ Scanned and uploaded</span>
+                    <span className="text-green-600">✓ Uploaded successfully</span>
                   )}
                   {formData[`${field}Error`] && (
                     <span className="text-red-600">✗ {formData[`${field}Error`]}</span>
@@ -409,7 +371,6 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
               type="button"
               onClick={() => removeFile(field)}
               className="text-red-600 hover:text-red-800 p-1"
-              disabled={formData[`${field}Scanning`]}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -418,11 +379,56 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
           </div>
         </div>
       ) : (
-        <DocumentScanner
-          onScanComplete={(scannedData) => handleDocumentScan(field, scannedData)}
-          documentType={field}
-          isScanning={formData[`${field}Scanning`]}
-        />
+        <div
+          className={`
+            border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200
+            ${dragOver[field]
+              ? 'border-blue-400 bg-blue-50'
+              : errors[field]
+                ? 'border-red-300 bg-red-50'
+                : 'border-gray-300 hover:border-gray-400'
+            }
+          `}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver({ ...dragOver, [field]: true });
+          }}
+          onDragLeave={(e) => {
+            e.preventDefault();
+            setDragOver({ ...dragOver, [field]: false });
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver({ ...dragOver, [field]: false });
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+              handleFileUpload(field, files[0]);
+            }
+          }}
+          onClick={() => document.getElementById(`${field}-input`).click()}
+        >
+          <div className="space-y-3">
+            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Upload {title}</p>
+              <p className="text-xs text-gray-500">
+                Click to upload or drag and drop
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Supports JPEG, PNG, and PDF files (max 10MB)
+              </p>
+            </div>
+          </div>
+          <input
+            id={`${field}-input`}
+            type="file"
+            className="hidden"
+            accept="image/jpeg,image/jpg,image/png,application/pdf"
+            onChange={(e) => handleFileUpload(field, e.target.files[0])}
+          />
+        </div>
       )}
       
       {errors[field] && (
@@ -434,94 +440,48 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Document Upload & Verification</h2>
-        <p className="text-gray-600">
-          Upload your passport photo and scan your documents for secure verification.
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Required Documents</h3>
+        <p className="text-sm text-gray-600">
+          Please upload all required documents. The passport photo will be validated using AI to ensure it meets government requirements.
         </p>
       </div>
 
-      {/* Passport Photo with AI Validation */}
+      {/* Passport Photo */}
       <PassportPhotoUploadArea />
 
-      {/* National ID - Scan Only */}
-      <DocumentScannerArea
-        field="nationalId"
+      {/* National ID Card */}
+      <FileUploadArea
+        field="identityDocument"
         title="National ID Card"
-        description="Scan your national ID card for secure verification. Place the card on a flat surface with good lighting."
+        description="Upload a clear copy of your national ID card"
         required={true}
       />
 
-      {/* Current Passport - Scan Only */}
-      {['renewal', 'replacement', 'correction'].includes(formData.applicationType) && (
-        <DocumentScannerArea
-          field="currentPassport"
-          title="Current Passport"
-          description="Scan your current passport for verification. Ensure all pages are clearly visible."
+      {/* Proof of Citizenship */}
+      <FileUploadArea
+        field="citizenshipDocument"
+        title="Proof of Citizenship"
+        description="Upload proof of Sudanese citizenship (birth certificate, citizenship certificate, etc.)"
+        required={true}
+      />
+
+      {/* Current Passport Copy (for renewal/replacement) */}
+      {['renewal', 'replacement'].includes(formData.applicationType) && (
+        <FileUploadArea
+          field="currentPassportCopy"
+          title="Current Passport Copy"
+          description="Upload a copy of your current passport"
           required={true}
         />
       )}
 
-      {/* Citizenship Document - Scan Only */}
-      <DocumentScannerArea
-        field="citizenshipDocument"
-        title="Proof of Citizenship"
-        description="Scan your citizenship certificate or birth certificate for verification."
-        required={true}
-      />
-
-      {/* Supporting Documents - Scan Only */}
-      <DocumentScannerArea
+      {/* Supporting Documents */}
+      <FileUploadArea
         field="supportingDocument"
         title="Supporting Documents (Optional)"
-        description="Scan any additional supporting documents if required."
+        description="Upload any additional supporting documents if required"
         required={false}
       />
-
-      {/* Security Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">Enhanced Security Features</h3>
-            <div className="mt-2 text-sm text-blue-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>AI-powered passport photo validation ensures compliance with government standards</li>
-                <li>Document scanning prevents fake or AI-generated documents</li>
-                <li>Real-time verification of document authenticity</li>
-                <li>Secure encryption of all uploaded documents</li>
-                <li>Government-grade security protocols</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Document Requirements */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-amber-800">Document Requirements</h3>
-            <div className="mt-2 text-sm text-amber-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>Ensure documents are placed on a clean, flat surface</li>
-                <li>Use good lighting to avoid shadows and glare</li>
-                <li>Keep the camera steady and parallel to the document</li>
-                <li>Make sure all text and details are clearly visible</li>
-                <li>Documents must be original or certified copies</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 } 

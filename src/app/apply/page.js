@@ -107,20 +107,24 @@ export default function ApplyPage() {
     }
   }, [session]);
 
-  const steps = [
-    { number: 1, title: 'Application Type', component: ApplicationTypeStep },
-    { number: 2, title: 'Current Passport', component: CurrentPassportStep, condition: () => ['renewal', 'replacement'].includes(formData.applicationType) },
-    { number: 3, title: 'Personal Information', component: PersonalInfoStep },
-    { number: 4, title: 'Contact Information', component: ContactInfoStep },
-    { number: 5, title: 'Emergency Contact', component: EmergencyContactStep },
-    { number: 6, title: 'Travel Information', component: TravelInfoStep },
-    { number: 7, title: 'Document Upload', component: DocumentUploadStep },
-    { number: 8, title: 'Payment', component: PaymentStep },
-    { number: 9, title: 'Review & Submit', component: ReviewStep }
-  ];
+  // Define steps with conditions
+  const getVisibleSteps = () => {
+    const allSteps = [
+      { number: 1, title: 'Application Type', component: ApplicationTypeStep },
+      { number: 2, title: 'Current Passport', component: CurrentPassportStep, condition: () => ['renewal', 'replacement'].includes(formData.applicationType) },
+      { number: 3, title: 'Personal Information', component: PersonalInfoStep },
+      { number: 4, title: 'Contact Information', component: ContactInfoStep },
+      { number: 5, title: 'Emergency Contact', component: EmergencyContactStep },
+      { number: 6, title: 'Travel Information', component: TravelInfoStep },
+      { number: 7, title: 'Document Upload', component: DocumentUploadStep },
+      { number: 8, title: 'Payment', component: PaymentStep },
+      { number: 9, title: 'Review & Submit', component: ReviewStep }
+    ];
+    
+    return allSteps.filter(step => !step.condition || step.condition());
+  };
 
-  // Filter steps based on conditions
-  const visibleSteps = steps.filter(step => !step.condition || step.condition());
+  const visibleSteps = getVisibleSteps();
 
   const updateFormData = (stepData) => {
     setFormData(prev => ({ ...prev, ...stepData }));
