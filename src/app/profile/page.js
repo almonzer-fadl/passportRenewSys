@@ -333,7 +333,7 @@ export default function ProfilePage() {
                 <div className="text-4xl mb-4">📄</div>
                 <h3 className="text-xl font-semibold mb-2">No Applications Yet</h3>
                 <p className="text-base-content/70 mb-4">
-                  You haven't submitted any passport applications yet.
+                  You haven&apos;t submitted any passport applications yet.
                 </p>
                 <Link href="/apply" className="btn btn-primary">
                   Submit Your First Application

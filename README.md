@@ -8,10 +8,11 @@ A modern, secure, and efficient digital platform for passport renewal applicatio
 
 ### For Citizens
 - **🎯 Simple Application Process** - Multi-step guided form with real-time validation
-- **📷 AI-Powered Photo Validation** - Face recognition and document verification
+- **🤖 AI-Powered Photo Validation** - Advanced face recognition with government compliance checking
+- **📱 Document Scanning** - Camera-based document capture to prevent fraud and AI-generated documents
 - **💳 Secure Payment Processing** - Stripe integration for government fees
 - **📱 Real-time Status Tracking** - Monitor application progress
-- **🔒 Data Security** - End-to-end encryption and secure file handling
+- **🔒 Enhanced Security** - Government-grade encryption and document verification
 
 ### For Government Officials
 - **🎛️ Comprehensive Admin Dashboard** - Review and process applications
@@ -141,9 +142,10 @@ npm run dev
 - 📧 **Nodemailer** for email services
 
 **AI/ML:**
-- 👤 **face-api.js** - Face detection and validation
-- 📄 **tesseract.js** - OCR for document text extraction
-- 🖼️ **Canvas API** - Image processing and validation
+- 👤 **face-api.js** - Advanced face detection and passport photo validation
+- 📱 **react-webcam** - Real-time document scanning with quality analysis
+- 🖼️ **Canvas API** - Image processing and quality assessment
+- 🔍 **Custom Algorithms** - Brightness, contrast, sharpness, and edge detection
 
 ---
 
@@ -618,17 +620,19 @@ npm run demo:start
 ### Demo Features
 - 🎮 **Pre-loaded demo data** with sample applications
 - 👤 **Test user accounts** for different roles
-- 🔍 **Working AI validation** with simulated responses
+- 🤖 **AI-powered photo validation** with face-api.js models
+- 📱 **Document scanning simulation** with quality analysis
 - 💳 **Stripe test mode** for payment processing
 - 📊 **Admin dashboard** with sample analytics
 
 ### Hackathon Presentation Points
-1. **🏛️ Government-Grade Security** - Enterprise-level authentication and data protection
-2. **🤖 AI-Powered Validation** - Cutting-edge face recognition and document verification
-3. **⚡ Modern Technology Stack** - Latest React, Next.js, and cloud technologies
-4. **🌍 Scalable Architecture** - Ready for millions of citizens
-5. **📱 User Experience** - Intuitive design with accessibility in mind
-6. **🔒 Compliance Ready** - Built for government security standards
+1. **🏛️ Government-Grade Security** - Enterprise-level authentication and fraud prevention
+2. **🤖 Advanced AI Validation** - Real-time face detection with government compliance checking
+3. **📱 Anti-Fraud Document Scanning** - Camera-based capture prevents fake/AI-generated documents
+4. **⚡ Modern Technology Stack** - Latest React, Next.js, and AI technologies
+5. **🌍 Scalable Architecture** - Ready for millions of citizens
+6. **📱 User Experience** - Intuitive design with accessibility in mind
+7. **🔒 Compliance Ready** - Built for Sudan government security standards
 
 ---
 

@@ -115,10 +115,11 @@ src/
 - **Payment**: Stripe API
 
 ### AI/ML Libraries
-- **Face Recognition**: face-api.js
-- **Document OCR**: Tesseract.js
-- **Image Processing**: Canvas API
-- **Computer Vision**: Browser-native APIs
+- **Face Recognition**: face-api.js with pre-trained models
+- **Document Scanning**: react-webcam with real-time quality analysis
+- **Image Processing**: Canvas API for pixel-level analysis
+- **Computer Vision**: Browser-native APIs with edge detection
+- **Quality Assessment**: Custom algorithms for brightness, contrast, and sharpness
 
 ### Security
 - **Authentication**: JWT tokens via NextAuth
@@ -153,42 +154,61 @@ src/components/auth/
 ### 2. Multi-Step Application Form
 
 #### Form Steps
-1. **Personal Information** (Name, DOB, Contact)
+1. **Application Type** (Renewal, Replacement, New)
 2. **Current Passport Details** (Number, Issue Date, Expiry)
-3. **Document Upload** (Passport photo, signature)
-4. **Face Verification** (Live camera capture)
-5. **Review & Submit** (Final confirmation)
-6. **Payment** (Fee processing)
+3. **Personal Information** (Name, DOB, Contact)
+4. **Contact Information** (Address, Phone, Email)
+5. **Emergency Contact** (Name, Relationship, Phone)
+6. **Travel Information** (Purpose, Countries, Dates)
+7. **Document Upload & Verification** (AI-powered photo validation + document scanning)
+8. **Payment** (Fee processing)
+9. **Review & Submit** (Final confirmation)
 
 #### Components Structure
 ```
 src/components/application/
-├── ApplicationWizard.jsx    # Main form container
-├── StepIndicator.jsx        # Progress indicator
-├── PersonalInfo.jsx         # Step 1: Personal details
-├── PassportDetails.jsx      # Step 2: Current passport
-├── DocumentUpload.jsx       # Step 3: File uploads
-├── FaceCapture.jsx          # Step 4: Live photo
-├── ReviewSubmit.jsx         # Step 5: Review
-└── PaymentForm.jsx          # Step 6: Payment
+├── ApplicationTypeStep.js      # Step 1: Application type selection
+├── CurrentPassportStep.js      # Step 2: Current passport details
+├── PersonalInfoStep.js         # Step 3: Personal information
+├── ContactInfoStep.js          # Step 4: Contact details
+├── EmergencyContactStep.js     # Step 5: Emergency contact
+├── TravelInfoStep.js           # Step 6: Travel information
+├── DocumentUploadStep.js       # Step 7: AI-powered document upload
+├── PaymentStep.js              # Step 8: Payment processing
+└── ReviewStep.js               # Step 9: Review and submit
 ```
 
-### 3. Camera & AI Validation
+### 3. AI-Powered Document Validation
+
+#### Enhanced Security Features
+- **Passport Photo AI Validation**: Real-time face detection and analysis using face-api.js
+- **Document Scanning**: Camera-based document capture to prevent fake/AI-generated documents
+- **Quality Analysis**: Automatic assessment of scan quality, lighting, and readability
+- **Government Compliance**: Ensures all documents meet Sudan passport requirements
 
 #### Validation Components
 ```
-src/components/camera/
-├── CameraCapture.jsx        # Camera interface
-├── FaceDetection.jsx        # Face validation logic
-├── DocumentValidator.jsx    # Document verification
-├── ValidationOverlay.jsx    # Real-time feedback
-└── ImagePreview.jsx         # Captured image display
+src/components/application/
+├── DocumentUploadStep.js    # Main document upload interface
+├── PassportPhotoValidator.js # AI-powered passport photo validation
+└── DocumentScanner.js       # Camera-based document scanning
 ```
 
-#### Validation Rules
-- **Face Photos**: Face detected, eyes open, proper lighting, white background
-- **Documents**: Rectangular shape, text readable, proper orientation
-- **File Types**: JPEG, PNG, WebP only
+#### AI Validation Rules
+- **Passport Photos**: 
+  - Face detected and centered
+  - Eyes open and clearly visible
+  - Proper lighting (not too dark/bright)
+  - White background (60%+ white pixels)
+  - Neutral expression
+  - No glasses or head coverings
+  - Single face only
+- **Document Scanning**:
+  - High-quality capture with edge detection
+  - Proper lighting and contrast
+  - Text readability analysis
+  - Document authenticity verification
+- **File Types**: JPEG, PNG only for photos, PDF allowed for documents
 - **File Size**: Maximum 10MB per file
 
 ### 4. Admin Dashboard

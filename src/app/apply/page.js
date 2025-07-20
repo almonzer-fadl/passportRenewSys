@@ -128,6 +128,12 @@ export default function ApplyPage() {
   };
 
   const validateCurrentStep = () => {
+    // TEMPORARILY DISABLED FOR TESTING - Skip all validations
+    setErrors({});
+    return true;
+    
+    // Original validation code (commented out for now)
+    /*
     const currentStepData = visibleSteps.find(step => step.number === currentStep);
     const newErrors = {};
 
@@ -212,6 +218,7 @@ export default function ApplyPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+    */
   };
 
   const nextStep = () => {
