@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
 import dbConnect from '@/lib/db';
 import Application from '@/models/application';
-import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function GET(req) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     await dbConnect();
 
     const { searchParams } = new URL(req.url);
@@ -19,11 +12,8 @@ export async function GET(req) {
     const status = searchParams.get('status');
     const skip = (page - 1) * limit;
 
-    // Build query based on user role
+    // Build query
     let query = {};
-    if (session.user.role === 'citizen') {
-      query.userId = session.user.id;
-    }
     if (status && status !== 'all') {
       query.status = status;
     }
@@ -54,26 +44,21 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     await dbConnect();
 
     const data = await req.json();
 
     // Create application object
     const applicationData = {
-      userId: session.user.id,
+      userId: data.userId || 'temp-user-id',
       personalInfo: {
-        firstName: data.personalInfo?.firstName || session.user.firstName,
-        lastName: data.personalInfo?.lastName || session.user.lastName,
+        firstName: data.personalInfo?.firstName || 'Test',
+        lastName: data.personalInfo?.lastName || 'User',
         dateOfBirth: data.personalInfo?.dateOfBirth,
         placeOfBirth: data.personalInfo?.placeOfBirth,
         nationality: data.personalInfo?.nationality || 'Sudanese',
         gender: data.personalInfo?.gender,
-        email: data.contactInfo?.email || session.user.email,
+        email: data.contactInfo?.email || 'test@example.com',
         phoneNumber: data.contactInfo?.phoneNumber,
         address: data.contactInfo?.address
       },

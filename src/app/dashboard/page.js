@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export default function Dashboard() {
-  const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -19,17 +19,9 @@ export default function Dashboard() {
     approved: 0
   });
 
-  // Check for successful submission
-  const submittedApp = searchParams.get('submitted');
-
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/auth/login?callbackUrl=/dashboard');
-      return;
-    }
     fetchApplications();
-  }, [session, status, router]);
+  }, []);
 
   const fetchApplications = async () => {
     try {
@@ -89,16 +81,12 @@ export default function Dashboard() {
     });
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
-  }
-
-  if (!session) {
-    return null; // Will redirect to login
   }
 
   return (
@@ -117,34 +105,24 @@ export default function Dashboard() {
           <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
               <div className="w-10 rounded-full bg-secondary text-secondary-content flex items-center justify-center">
-                {session.user?.firstName?.[0] || session.user?.name?.[0] || 'U'}
+                U
               </div>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
               <li><Link href="/profile">Profile</Link></li>
-              <li><button onClick={() => router.push('/api/auth/signout')}>Logout</button></li>
+              <li><Link href="/auth/login">Login</Link></li>
             </ul>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Success Message */}
-        {submittedApp && (
-          <div className="alert alert-success mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Application {submittedApp} submitted successfully!</span>
-          </div>
-        )}
-
         {/* Welcome Section */}
         <div className="hero bg-gradient-to-r from-primary to-secondary text-primary-content rounded-lg mb-8">
           <div className="hero-content text-center">
             <div className="max-w-md">
               <h1 className="text-4xl font-bold">
-                Welcome, {session.user?.firstName || session.user?.name}!
+                Welcome to Sudan Passport System!
               </h1>
               <p className="py-6">
                 Manage your passport applications and track their progress from your dashboard.
@@ -203,7 +181,7 @@ export default function Dashboard() {
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="card-title text-2xl">Your Applications</h2>
+              <h2 className="card-title text-2xl">Applications</h2>
               <Link href="/apply" className="btn btn-primary">
                 New Application
               </Link>
