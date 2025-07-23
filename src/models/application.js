@@ -55,5 +55,16 @@ const applicationSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
+// Pre-save middleware to generate application number
+applicationSchema.pre('save', function(next) {
+  if (this.isNew && !this.applicationNumber) {
+    const year = new Date().getFullYear();
+    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    const random = Math.random().toString(36).substr(2, 8).toUpperCase();
+    this.applicationNumber = `SD${year}${month}-${random}`;
+  }
+  this.updatedAt = new Date();
+  next();
+});
 
-module.exports = mongoose.model('Application', applicationSchema);
+export default mongoose.models.Application || mongoose.model('Application', applicationSchema);

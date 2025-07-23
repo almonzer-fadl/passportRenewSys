@@ -13,39 +13,59 @@ export const authOptions = {
         password: {  label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        await dbConnect();
+        try {
+          await dbConnect();
 
-        const user = await User.findOne({ email: credentials.email });
-        if (!user) {
-          throw new Error('No user found with this email');
+          const user = await User.findOne({ email: credentials.email });
+          if (!user) {
+            throw new Error('No user found with this email');
+          }
+
+          const isValid = await bcrypt.compare(credentials.password, user.password);
+          if (!isValid) {
+            throw new Error('Invalid password');
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name, // This will use the virtual property
+            email: user.email,
+            role: user.role,
+            firstName: user.profile.firstName,
+            lastName: user.profile.lastName
+          };
+        } catch (error) {
+          console.error('Auth error:', error);
+          throw new Error(error.message || 'Authentication failed');
         }
-
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error('Invalid password');
-        }
-
-        return { id: user._id, name: user.name, email: user.email };
       }
     })
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.role = user.role;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
       }
       return token;
     },
     async session({ session, token }) {
       session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.firstName = token.firstName;
+      session.user.lastName = token.lastName;
       return session;
     },
   },
   pages: {
     signIn: '/auth/login',
+    signUp: '/auth/register',
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
