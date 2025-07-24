@@ -41,48 +41,38 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
     setSubmitError(null);
 
     try {
-      // Prepare application data
+      // Prepare application data with complete form structure
       const applicationData = {
         applicationType: formData.applicationType,
-        processingSpeed: formData.processingSpeed || 'regular',
+        processingType: formData.processingType,
         
         // Current passport info (for renewals/replacements)
-        currentPassportNumber: formData.currentPassportNumber,
-        currentPassportIssueDate: formData.currentPassportIssueDate,
-        currentPassportExpiryDate: formData.currentPassportExpiryDate,
-        currentPassportIssuingOffice: formData.currentPassportIssuingOffice,
-        currentPassportStatus: formData.currentPassportStatus,
-        replacementReason: formData.replacementReason,
+        currentPassport: formData.currentPassport,
         
         // Personal info
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        dateOfBirth: formData.dateOfBirth,
-        nationalId: formData.nationalId,
-        gender: formData.gender,
-        placeOfBirth: formData.placeOfBirth,
+        personalInfo: formData.personalInfo,
         
         // Contact info
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        country: formData.country,
+        contactInfo: formData.contactInfo,
         
         // Emergency contact
-        emergencyContactName: formData.emergencyContactName,
-        emergencyContactPhone: formData.emergencyContactPhone,
-        emergencyContactRelationship: formData.emergencyContactRelationship,
+        emergencyContact: formData.emergencyContact,
         
         // Travel info
-        travelPurpose: formData.travelPurpose,
-        travelCountries: formData.travelCountries,
-        travelDepartureDate: formData.travelDepartureDate,
-        travelReturnDate: formData.travelReturnDate,
+        travelInfo: formData.travelInfo,
         
-        // Payment info
-        payment: formData.payment,
-        paymentCompleted: formData.paymentCompleted
+        // Documents with URLs
+        documents: {
+          passportPhotoUrl: formData.documents?.passportPhotoUrl,
+          passportPhotoValidated: formData.documents?.passportPhotoValidated,
+          identityDocumentUrl: formData.documents?.identityDocumentUrl,
+          citizenshipDocumentUrl: formData.documents?.citizenshipDocumentUrl,
+          supportingDocumentUrl: formData.documents?.supportingDocumentUrl,
+          currentPassportCopyUrl: formData.documents?.currentPassportCopyUrl
+        },
+        
+        // Terms and conditions
+        termsAccepted: formData.termsAccepted
       };
 
       // Submit application
@@ -342,53 +332,55 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
       </div>
 
       {/* Fee Information */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Fee Information</h3>
-            <div className="mt-2 text-sm text-yellow-700">
-              <p className="mb-2">Estimated fees for your application:</p>
-              <ul className="space-y-1">
-                <li>• {formData.applicationType === 'new' ? 'New passport' : formData.applicationType === 'renewal' ? 'Passport renewal' : 'Passport replacement'}: $150 USD</li>
-                {formData.processingType === 'express' && (
-                  <li>• Express processing: $75 USD</li>
-                )}
-                <li>• Service charge: $25 USD</li>
-                <li className="font-medium border-t border-yellow-300 pt-1">
-                  Total: ${150 + (formData.processingType === 'express' ? 75 : 0) + 25} USD
-                </li>
-              </ul>
-              <p className="mt-2 text-xs">Payment has been completed successfully.</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Removed payment information section */}
+      {/* <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4"> */}
+      {/*   <div className="flex"> */}
+      {/*     <div className="flex-shrink-0"> */}
+      {/*       <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor"> */}
+      {/*         <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" /> */}
+      {/*       </svg> */}
+      {/*     </div> */}
+      {/*     <div className="ml-3"> */}
+      {/*       <h3 className="text-sm font-medium text-yellow-800">Fee Information</h3> */}
+      {/*       <div className="mt-2 text-sm text-yellow-700"> */}
+      {/*         <p className="mb-2">Estimated fees for your application:</p> */}
+      {/*         <ul className="space-y-1"> */}
+      {/*           <li>• {formData.applicationType === 'new' ? 'New passport' : formData.applicationType === 'renewal' ? 'Passport renewal' : 'Passport replacement'}: $150 USD</li> */}
+      {/*           {formData.processingType === 'express' && ( */}
+      {/*             <li>• Express processing: $75 USD</li> */}
+      {/*           )} */}
+      {/*           <li>• Service charge: $25 USD</li> */}
+      {/*           <li className="font-medium border-t border-yellow-300 pt-1"> */}
+      {/*             Total: ${150 + (formData.processingType === 'express' ? 75 : 0) + 25} USD */}
+      {/*           </li> */}
+      {/*         </ul> */}
+      {/*         <p className="mt-2 text-xs">Payment has been completed successfully.</p> */}
+      {/*       </div> */}
+      {/*     </div> */}
+      {/*   </div> */}
+      {/* </div> */}
 
       {/* Payment Status */}
-      {formData.paymentCompleted && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-green-800">Payment Completed</h3>
-              <div className="mt-2 text-sm text-green-700">
-                <p>Payment ID: {formData.payment?.paymentId}</p>
-                <p>Amount: ${formData.payment?.amount?.toFixed(2)}</p>
-                <p>Method: {formData.payment?.paymentMethod}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Removed payment status display */}
+      {/* {formData.paymentCompleted && ( */}
+      {/*   <div className="bg-green-50 border border-green-200 rounded-lg p-4"> */}
+      {/*     <div className="flex"> */}
+      {/*       <div className="flex-shrink-0"> */}
+      {/*         <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor"> */}
+      {/*           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /> */}
+      {/*         </svg> */}
+      {/*       </div> */}
+      {/*       <div className="ml-3"> */}
+      {/*         <h3 className="text-sm font-medium text-green-800">Payment Completed</h3> */}
+      {/*         <div className="mt-2 text-sm text-green-700"> */}
+      {/*           <p>Payment ID: {formData.payment?.paymentId}</p> */}
+      {/*           <p>Amount: ${formData.payment?.amount?.toFixed(2)}</p> */}
+      {/*           <p>Method: {formData.payment?.paymentMethod}</p> */}
+      {/*         </div> */}
+      {/*       </div> */}
+      {/*     </div> */}
+      {/*   </div> */}
+      {/* )} */}
 
       {/* Documents Status */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -462,7 +454,7 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
 
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !formData.paymentCompleted}
+            disabled={isSubmitting}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
@@ -475,11 +467,10 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
             )}
           </button>
 
-          {!formData.paymentCompleted && (
-            <p className="text-sm text-gray-500 text-center">
-              Please complete payment before submitting your application.
-            </p>
-          )}
+          {/* Removed payment completion message */}
+          {/* <p className="text-sm text-gray-500 text-center"> */}
+          {/*   Please complete payment before submitting your application. */}
+          {/* </p> */}
 
           <p className="text-xs text-gray-500 text-center">
             Once submitted, you will receive a confirmation email with your application number.

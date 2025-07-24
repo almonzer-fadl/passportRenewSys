@@ -53,29 +53,31 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
         }
       });
 
-      // Simulate AI validation
+      // Perform AI validation
       validatePassportPhoto(file);
     };
     reader.readAsDataURL(file);
   };
 
-  // Simulate AI validation for passport photo
+  // AI validation for passport photo using API
   const validatePassportPhoto = async (file) => {
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create form data for API
+      const formData = new FormData();
+      formData.append('file', file);
 
-      // Simulate validation results
-      const validationResult = {
-        passed: Math.random() > 0.3, // 70% pass rate
-        confidence: 0.85 + Math.random() * 0.1,
-        details: {
-          faceDetected: Math.random() > 0.1,
-          eyesOpen: Math.random() > 0.1,
-          properLighting: Math.random() > 0.1,
-          whiteBackground: Math.random() > 0.1
-        }
-      };
+      // Call AI validation API
+      const response = await fetch('/api/validate/passport-photo', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Validation failed');
+      }
+
+      const result = await response.json();
+      const validationResult = result.validation;
 
       setValidationResults(prev => ({
         ...prev,
@@ -86,10 +88,12 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
         documents: {
           ...formData.documents,
           passportPhotoUploading: false,
-          passportPhotoError: validationResult.passed ? null : 'Photo does not meet requirements'
+          passportPhotoError: validationResult.passed ? null : 'Photo does not meet requirements',
+          passportPhotoValidated: validationResult.passed
         }
       });
     } catch (error) {
+      console.error('Photo validation error:', error);
       updateFormData({
         documents: {
           ...formData.documents,
@@ -101,7 +105,7 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
   };
 
   // Handle regular file uploads
-  const handleFileUpload = (field, file) => {
+  const handleFileUpload = async (field, file) => {
     if (!file) return;
 
     // Validate file type and size
@@ -126,7 +130,7 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
       return;
     }
 
-    // Create preview
+    // Create preview first
     const reader = new FileReader();
     reader.onload = (e) => {
       updateFormData({
@@ -136,11 +140,48 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
           [`${field}Preview`]: e.target.result,
           [`${field}Name`]: file.name,
           [`${field}Error`]: null,
-          [`${field}Uploaded`]: true
+          [`${field}Uploading`]: true
         }
       });
     };
     reader.readAsDataURL(file);
+
+    // Upload file to server
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', field);
+      formData.append('userId', 'demo-user');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          [`${field}Uploading`]: false,
+          [`${field}Uploaded`]: true,
+          [`${field}Url`]: result.file.url
+        }
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      updateFormData({
+        documents: {
+          ...formData.documents,
+          [`${field}Uploading`]: false,
+          [`${field}Error`]: 'Upload failed. Please try again.'
+        }
+      });
+    }
   };
 
   const removeFile = (field) => {
@@ -152,9 +193,18 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
         [`${field}Name`]: null,
         [`${field}Error`]: null,
         [`${field}Uploading`]: false,
-        [`${field}Uploaded`]: false
+        [`${field}Uploaded`]: false,
+        [`${field}Url`]: null
       }
     });
+
+    // Clear validation results for passport photo
+    if (field === 'passportPhoto') {
+      setValidationResults(prev => ({
+        ...prev,
+        passportPhoto: null
+      }));
+    }
   };
 
   // Passport Photo Upload Area with AI Validation
@@ -358,6 +408,9 @@ export default function DocumentUploadStep({ formData, updateFormData, errors })
               <div>
                 <p className="text-sm font-medium text-gray-900">{formData[`${field}Name`]}</p>
                 <div className="text-sm text-gray-500">
+                  {formData[`${field}Uploading`] && (
+                    <span className="text-blue-600">Uploading...</span>
+                  )}
                   {formData[`${field}Uploaded`] && (
                     <span className="text-green-600">✓ Uploaded successfully</span>
                   )}

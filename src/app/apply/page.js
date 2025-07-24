@@ -107,7 +107,6 @@ export default function ApplyPage() {
     }
   }, [session]);
 
-  // Define steps with conditions
   const getVisibleSteps = () => {
     const allSteps = [
       { number: 1, title: 'Application Type', component: ApplicationTypeStep },
@@ -117,8 +116,7 @@ export default function ApplyPage() {
       { number: 5, title: 'Emergency Contact', component: EmergencyContactStep },
       { number: 6, title: 'Travel Information', component: TravelInfoStep },
       { number: 7, title: 'Document Upload', component: DocumentUploadStep },
-      { number: 8, title: 'Payment', component: PaymentStep },
-      { number: 9, title: 'Review & Submit', component: ReviewStep }
+      { number: 8, title: 'Review & Submit', component: ReviewStep }
     ];
     
     return allSteps.filter(step => !step.condition || step.condition());
