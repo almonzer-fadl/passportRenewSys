@@ -121,6 +121,9 @@ export default function Dashboard() {
               </div>
               <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
                 <li><Link href="/profile">Profile</Link></li>
+                {user?.role === 'admin' && (
+                  <li><Link href="/admin">Admin Panel</Link></li>
+                )}
                 <li><button onClick={handleLogout}>Logout</button></li>
               </ul>
             </div>
@@ -138,9 +141,16 @@ export default function Dashboard() {
               <p className="py-6">
                 Manage your passport applications and track their progress from your dashboard.
               </p>
-              <Link href="/apply" className="btn btn-accent">
-                New Application
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/apply" className="btn btn-accent">
+                  New Application
+                </Link>
+                {user?.role === 'admin' && (
+                  <Link href="/admin" className="btn btn-secondary">
+                    Admin Panel
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>

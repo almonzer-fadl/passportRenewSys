@@ -33,7 +33,9 @@ export default function LoginForm() {
 
       if (data.success) {
         login(data.user);
-        router.push(callbackUrl);
+        // Redirect admin users to admin dashboard, regular users to user dashboard
+        const redirectUrl = data.user.role === 'admin' ? '/admin' : callbackUrl;
+        router.push(redirectUrl);
       } else {
         setError(data.error || 'Invalid email or password');
       }
