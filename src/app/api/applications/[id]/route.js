@@ -50,6 +50,56 @@ export async function PUT(req, { params }) {
   }
 }
 
+export async function PATCH(req, { params }) {
+  try {
+    await dbConnect();
+
+    const application = await Application.findById(params.id);
+    if (!application) {
+      return NextResponse.json({ error: 'Application not found' }, { status: 404 });
+    }
+
+    const data = await req.json();
+
+    // For status updates, add review information
+    if (data.status) {
+      application.status = data.status;
+      application.updatedAt = new Date();
+      
+      // Add review information if status is being changed
+      if (data.status !== application.status) {
+        application.review = {
+          ...application.review,
+          status: data.status,
+          reviewedAt: new Date(),
+          reviewedBy: 'admin-user', // In a real app, this would be the actual admin user ID
+          notes: data.notes || ''
+        };
+      }
+    }
+
+    // Update other fields if provided
+    if (data.notes) {
+      application.review = {
+        ...application.review,
+        notes: data.notes,
+        reviewedAt: new Date()
+      };
+    }
+    
+    await application.save();
+
+    return NextResponse.json({
+      message: 'Application status updated successfully',
+      application
+    });
+
+  } catch (error) {
+    console.error('Error updating application status:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req, { params }) {
   try {
     await dbConnect();

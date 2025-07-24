@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 // Import step components
 import ApplicationTypeStep from '../../components/application/ApplicationTypeStep';
@@ -15,16 +17,7 @@ import PaymentStep from '../../components/application/PaymentStep';
 import ReviewStep from '../../components/application/ReviewStep';
 
 export default function ApplyPage() {
-  // Mock session for demo
-  const session = {
-    user: {
-      id: '1',
-      name: 'Demo User',
-      email: 'demo@passport.gov.sd',
-      firstName: 'Demo',
-      lastName: 'User'
-    }
-  };
+  const { user } = useAuth();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -94,18 +87,18 @@ export default function ApplyPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Pre-fill email from demo session
+  // Pre-fill email from user session
   useEffect(() => {
-    if (session?.user?.email) {
+    if (user?.email) {
       setFormData(prev => ({
         ...prev,
         contactInfo: {
           ...prev.contactInfo,
-          email: session.user.email
+          email: user.email
         }
       }));
     }
-  }, [session]);
+  }, [user?.email]);
 
   const getVisibleSteps = () => {
     const allSteps = [
@@ -274,7 +267,8 @@ export default function ApplyPage() {
   const isFirstStep = stepIndex === 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <AuthGuard>
+      <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -417,5 +411,6 @@ export default function ApplyPage() {
         )}
       </div>
     </div>
+    </AuthGuard>
   );
 } 

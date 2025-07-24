@@ -2,17 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import AdminGuard from '@/components/auth/AdminGuard';
 
 export default function AdminDashboard() {
-  // Mock admin session for demo
-  const session = {
-    user: {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@passport.gov.sd',
-      role: 'admin'
-    }
-  };
+  const { user } = useAuth();
   const router = useRouter();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,96 +23,52 @@ export default function AdminDashboard() {
     rejected: 0
   });
 
-  // Fetch mock applications
+  // Fetch applications from API
   const fetchApplications = useCallback(async () => {
     try {
       setLoading(true);
       
-      // Mock applications data
-      const mockApplications = [
-        {
-          id: '1',
-          applicationType: 'new',
-          status: 'submitted',
-          personalInfo: {
-            firstName: 'Ahmed',
-            lastName: 'Hassan',
-            dateOfBirth: '1990-01-01'
-          },
-          contactInfo: {
-            email: 'ahmed@example.com',
-            phone: '+249123456789'
-          },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          applicationType: 'renewal',
-          status: 'under_review',
-          personalInfo: {
-            firstName: 'Fatima',
-            lastName: 'Ali',
-            dateOfBirth: '1985-05-15'
-          },
-          contactInfo: {
-            email: 'fatima@example.com',
-            phone: '+249987654321'
-          },
-          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: '3',
-          applicationType: 'replacement',
-          status: 'approved',
-          personalInfo: {
-            firstName: 'Omar',
-            lastName: 'Ibrahim',
-            dateOfBirth: '1992-12-20'
-          },
-          contactInfo: {
-            email: 'omar@example.com',
-            phone: '+249555123456'
-          },
-          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+      const response = await fetch('/api/applications');
+      if (response.ok) {
+        const data = await response.json();
+        const allApplications = data.applications || [];
+        
+        // Filter applications based on current filters
+        let filteredApplications = allApplications;
+        
+        if (filters.status !== 'all') {
+          filteredApplications = filteredApplications.filter(app => app.status === filters.status);
         }
-      ];
-      
-      // Filter applications based on current filters
-      let filteredApplications = mockApplications;
-      
-      if (filters.status !== 'all') {
-        filteredApplications = filteredApplications.filter(app => app.status === filters.status);
+        
+        if (filters.type !== 'all') {
+          filteredApplications = filteredApplications.filter(app => app.applicationType === filters.type);
+        }
+        
+        if (filters.search) {
+          const searchLower = filters.search.toLowerCase();
+          filteredApplications = filteredApplications.filter(app => 
+            app.personalInfo?.firstName?.toLowerCase().includes(searchLower) ||
+            app.personalInfo?.lastName?.toLowerCase().includes(searchLower) ||
+            app.contactInfo?.email?.toLowerCase().includes(searchLower) ||
+            app.applicationNumber?.toLowerCase().includes(searchLower)
+          );
+        }
+        
+        setApplications(filteredApplications);
+        
+        // Calculate stats
+        const newStats = {
+          total: allApplications.length,
+          pending: allApplications.filter(app => app.status === 'submitted').length,
+          underReview: allApplications.filter(app => app.status === 'under_review').length,
+          approved: allApplications.filter(app => app.status === 'approved').length,
+          rejected: allApplications.filter(app => app.status === 'rejected').length
+        };
+        
+        setStats(newStats);
+      } else {
+        console.error('Failed to fetch applications');
       }
-      
-      if (filters.type !== 'all') {
-        filteredApplications = filteredApplications.filter(app => app.applicationType === filters.type);
-      }
-      
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        filteredApplications = filteredApplications.filter(app => 
-          app.personalInfo.firstName.toLowerCase().includes(searchLower) ||
-          app.personalInfo.lastName.toLowerCase().includes(searchLower) ||
-          app.contactInfo.email.toLowerCase().includes(searchLower) ||
-          app.id.includes(searchLower)
-        );
-      }
-      
-      setApplications(filteredApplications);
-      
-      // Calculate mock stats
-      const mockStats = {
-        total: mockApplications.length,
-        pending: mockApplications.filter(app => app.status === 'submitted').length,
-        underReview: mockApplications.filter(app => app.status === 'under_review').length,
-        approved: mockApplications.filter(app => app.status === 'approved').length,
-        rejected: mockApplications.filter(app => app.status === 'rejected').length
-      };
-      
-      setStats(mockStats);
     } catch (error) {
       console.error('Error fetching applications:', error);
     } finally {
@@ -132,20 +82,20 @@ export default function AdminDashboard() {
 
   const updateApplicationStatus = async (applicationId, newStatus) => {
     try {
-      // Mock status update - just update local state
-      setApplications(prev => 
-        prev.map(app => 
-          app.id === applicationId 
-            ? { ...app, status: newStatus, updatedAt: new Date().toISOString() }
-            : app
-        )
-      );
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Refresh to update stats
-      fetchApplications();
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        // Refresh applications to get updated data
+        fetchApplications();
+      } else {
+        console.error('Failed to update application status');
+      }
     } catch (error) {
       console.error('Error updating status:', error);
     }
@@ -203,26 +153,39 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!session || session.user.email !== 'demo@passport.gov.sd') {
-    return null; // Will redirect via useEffect
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <AdminGuard>
+      <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Manage passport applications</p>
+              <p className="text-gray-600">Welcome, {user?.firstName} {user?.lastName}</p>
             </div>
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
-            >
-              Back to User Dashboard
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+              >
+                User Dashboard
+              </button>
+              <button
+                onClick={() => router.push('/auth/login')}
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+              >
+                Logout
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -396,36 +359,36 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {application.application_number}
+                          {application.applicationNumber || 'N/A'}
                         </div>
                         <div className="text-sm text-gray-500">
-                          ${application.total_fee}
+                          ID: {application._id}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {application.user_name || 'N/A'}
+                          {application.personalInfo?.firstName} {application.personalInfo?.lastName}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {application.user_email || 'N/A'}
+                          {application.contactInfo?.email || 'N/A'}
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {getTypeBadge(application.application_type)}
+                        {getTypeBadge(application.applicationType)}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {application.processing_speed === 'express' ? 'Express' : 'Regular'}
+                        {application.processingType === 'express' ? 'Express' : 'Regular'}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(application.status)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(application.created_at).toLocaleDateString()}
+                      {new Date(application.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -479,5 +442,6 @@ export default function AdminDashboard() {
         </div>
       </div>
     </div>
+    </AdminGuard>
   );
 } 

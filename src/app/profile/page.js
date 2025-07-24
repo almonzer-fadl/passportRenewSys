@@ -3,19 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/components/AuthProvider';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 export default function ProfilePage() {
-  // Mock session for demo
-  const session = {
-    user: {
-      id: '1',
-      name: 'Demo User',
-      email: 'demo@passport.gov.sd',
-      firstName: 'Demo',
-      lastName: 'User',
-      nationalId: '123456789'
-    }
-  };
+  const { user: authUser } = useAuth();
   
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -33,13 +25,13 @@ export default function ProfilePage() {
 
   const fetchUserProfile = async () => {
     try {
-      // Mock user data
-      const mockUser = {
-        id: '1',
-        name: 'Demo User',
-        firstName: 'Demo',
-        lastName: 'User',
-        email: 'demo@passport.gov.sd',
+      // Use authenticated user data
+      const userData = {
+        id: authUser?.id || '1',
+        name: `${authUser?.firstName || 'Demo'} ${authUser?.lastName || 'User'}`,
+        firstName: authUser?.firstName || 'Demo',
+        lastName: authUser?.lastName || 'User',
+        email: authUser?.email || 'demo@passport.gov.sd',
         nationalId: '123456789',
         phone: '+249123456789',
         address: '123 Demo Street, Khartoum, Sudan',
@@ -49,8 +41,8 @@ export default function ProfilePage() {
         updatedAt: new Date().toISOString()
       };
       
-      setUser(mockUser);
-      setFormData(mockUser);
+      setUser(userData);
+      setFormData(userData);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -60,25 +52,13 @@ export default function ProfilePage() {
 
   const fetchApplicationHistory = async () => {
     try {
-      // Mock applications data
-      const mockApplications = [
-        {
-          id: '1',
-          applicationType: 'new',
-          status: 'submitted',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: '2',
-          applicationType: 'renewal',
-          status: 'under_review',
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
-      
-      setApplications(mockApplications);
+      const response = await fetch('/api/applications');
+      if (response.ok) {
+        const data = await response.json();
+        setApplications(data.applications || []);
+      } else {
+        console.error('Failed to fetch applications');
+      }
     } catch (error) {
       console.error('Error fetching applications:', error);
     }
@@ -174,7 +154,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <AuthGuard>
+      <div className="min-h-screen bg-base-200">
       {/* Header */}
       <div className="navbar bg-primary text-primary-content">
         <div className="navbar-start">
@@ -382,5 +363,6 @@ export default function ProfilePage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 } 
