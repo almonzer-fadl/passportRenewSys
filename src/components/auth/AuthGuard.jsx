@@ -1,24 +1,33 @@
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
+'use client';
+
+import { useAuth } from '@/components/AuthProvider';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 const AuthGuard = ({ children }) => {
-  const { data: session, status } = useSession();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return; 
-    if (!session) {
-      
-      router.push('/auth/login'); 
+    if (loading) return; // Still loading, wait
+    if (!user) {
+      router.push('/auth/login');
     }
-  }, [session, status, router]);
+  }, [user, loading, router]);
 
-  if (status === 'loading' || !session) {
-    return <p>Loading...</p>; 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    );
   }
 
-  return children; 
+  if (!user) {
+    return null; // Don't render anything while redirecting
+  }
+
+  return children;
 };
 
 export default AuthGuard;

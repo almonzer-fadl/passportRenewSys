@@ -1,23 +1,5 @@
 import { NextResponse } from 'next/server';
 
-// Simple authentication endpoints for demo
-export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-  const action = searchParams.get('action');
-
-  if (action === 'signin') {
-    return NextResponse.json({ 
-      message: 'Sign in endpoint',
-      action: 'signin'
-    });
-  }
-
-  return NextResponse.json({ 
-    message: 'Auth endpoint',
-    availableActions: ['signin', 'signout', 'session']
-  });
-}
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -71,4 +53,4 @@ export async function POST(req) {
       error: 'Invalid request'
     }, { status: 400 });
   }
-}
+} 

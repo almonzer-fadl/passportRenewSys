@@ -3,12 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import AuthGuard from '@/components/auth/AuthGuard';
+import { useAuth } from '@/components/AuthProvider';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
 
 export default function Dashboard() {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -46,6 +49,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
   };
 
   const getStatusBadge = (status) => {
@@ -90,31 +98,34 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-base-200">
-      {/* Header */}
-      <div className="navbar bg-primary text-primary-content">
-        <div className="navbar-start">
-          <Link href="/" className="btn btn-ghost text-xl">
-            🇸🇩 Sudan Passport
-          </Link>
+    <AuthGuard>
+      <div className="min-h-screen bg-base-200">
+        {/* Header */}
+        <div className="navbar bg-primary text-primary-content">
+          <div className="navbar-start">
+            <Link href="/" className="btn btn-ghost text-xl">
+              🇸🇩 Sudan Passport
+            </Link>
+          </div>
+                  <div className="navbar-center">
+          <span className="text-lg font-semibold">
+            Welcome, {user?.firstName || 'User'}!
+          </span>
         </div>
-        <div className="navbar-center">
-          <span className="text-lg font-semibold">Dashboard</span>
-        </div>
-        <div className="navbar-end">
-          <div className="dropdown dropdown-end">
-            <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
-              <div className="w-10 rounded-full bg-secondary text-secondary-content flex items-center justify-center">
-                U
+          <div className="navbar-end">
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
+                <div className="w-10 rounded-full bg-secondary text-secondary-content flex items-center justify-center">
+                  {user?.firstName?.charAt(0) || 'U'}
+                </div>
               </div>
+              <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
+                <li><Link href="/profile">Profile</Link></li>
+                <li><button onClick={handleLogout}>Logout</button></li>
+              </ul>
             </div>
-            <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
-              <li><Link href="/profile">Profile</Link></li>
-              <li><Link href="/auth/login">Login</Link></li>
-            </ul>
           </div>
         </div>
-      </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Welcome Section */}
@@ -257,5 +268,6 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }
