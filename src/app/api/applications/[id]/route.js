@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import Application from '@/models/application';
+import { emailService } from '@/lib/emailService';
 
 export async function GET(req, { params }) {
   try {
@@ -63,11 +64,12 @@ export async function PATCH(req, { params }) {
 
     // For status updates, add review information
     if (data.status) {
+      const oldStatus = application.status;
       application.status = data.status;
       application.updatedAt = new Date();
       
       // Add review information if status is being changed
-      if (data.status !== application.status) {
+      if (data.status !== oldStatus) {
         application.review = {
           ...application.review,
           status: data.status,
@@ -88,6 +90,28 @@ export async function PATCH(req, { params }) {
     }
     
     await application.save();
+
+    // Send status update email if status changed
+    if (data.status && data.status !== application.status) {
+      try {
+        // Get user data from application
+        const userData = {
+          firstName: application.personalInfo?.firstName || 'User',
+          lastName: application.personalInfo?.lastName || 'Demo',
+          email: application.contactInfo?.email || 'demo@example.com'
+        };
+        
+        await emailService.sendStatusUpdate(
+          userData, 
+          { applicationNumber: application.applicationNumber },
+          data.status,
+          data.notes || ''
+        );
+      } catch (emailError) {
+        console.error('Failed to send status update email:', emailError);
+        // Don't fail the status update if email fails
+      }
+    }
 
     return NextResponse.json({
       message: 'Application status updated successfully',

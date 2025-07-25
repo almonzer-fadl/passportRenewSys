@@ -122,7 +122,7 @@ export default function Dashboard() {
               <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52 text-base-content">
                 <li><Link href="/profile">Profile</Link></li>
                 {user?.role === 'admin' && (
-                  <li><Link href="/admin">Admin Panel</Link></li>
+                  <li><Link href="/admin">{t('admin.dashboard')}</Link></li>
                 )}
                 <li><button onClick={handleLogout}>Logout</button></li>
               </ul>
@@ -147,7 +147,7 @@ export default function Dashboard() {
                 </Link>
                 {user?.role === 'admin' && (
                   <Link href="/admin" className="btn btn-secondary">
-                    Admin Panel
+                    {t('admin.dashboard')}
                   </Link>
                 )}
               </div>

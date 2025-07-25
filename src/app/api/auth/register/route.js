@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import User from '@/models/user';
 import bcrypt from 'bcryptjs';
+import { emailService } from '@/lib/emailService';
 
 export async function POST(req) {
   try {
@@ -66,6 +67,18 @@ export async function POST(req) {
     });
 
     await user.save();
+
+    // Send welcome email
+    try {
+      await emailService.sendWelcomeEmail({
+        firstName,
+        lastName,
+        email
+      });
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail registration if email fails
+    }
 
     // Return success without password
     const userResponse = {

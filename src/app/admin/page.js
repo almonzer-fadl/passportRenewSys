@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 import AdminGuard from '@/components/auth/AdminGuard';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -169,21 +171,21 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Welcome, {user?.firstName} {user?.lastName}</p>
+              <h1 className="text-2xl font-bold text-gray-900">{t('admin.dashboard')}</h1>
+              <p className="text-gray-600">{t('admin.welcome')}, {user?.firstName} {user?.lastName}</p>
             </div>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push('/dashboard')}
                 className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
               >
-                User Dashboard
+                {t('admin.userDashboard')}
               </button>
               <button
                 onClick={() => router.push('/auth/login')}
                 className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
               >
-                Logout
+                {t('navigation.logout')}
               </button>
             </div>
           </div>
@@ -201,7 +203,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Total Applications</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.totalApplications')}</dt>
                     <dd className="text-lg font-medium text-gray-900">{stats.total}</dd>
                   </dl>
                 </div>
@@ -217,7 +219,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Pending</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.pending')}</dt>
                     <dd className="text-lg font-medium text-gray-900">{stats.pending}</dd>
                   </dl>
                 </div>
@@ -233,7 +235,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Under Review</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.underReview')}</dt>
                     <dd className="text-lg font-medium text-gray-900">{stats.underReview}</dd>
                   </dl>
                 </div>
@@ -249,7 +251,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Approved</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.approved')}</dt>
                     <dd className="text-lg font-medium text-gray-900">{stats.approved}</dd>
                   </dl>
                 </div>
@@ -265,7 +267,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">Rejected</dt>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{t('admin.rejected')}</dt>
                     <dd className="text-lg font-medium text-gray-900">{stats.rejected}</dd>
                   </dl>
                 </div>
@@ -295,13 +297,13 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.applicationType')}</label>
                 <select
                   value={filters.type}
                   onChange={(e) => setFilters({...filters, type: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Types</option>
+                  <option value="all">{t('admin.allStatuses')}</option>
                   <option value="new">New Passport</option>
                   <option value="renewal">Renewal</option>
                   <option value="replacement">Replacement</option>
@@ -310,10 +312,10 @@ export default function AdminDashboard() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('common.search')}</label>
                 <input
                   type="text"
-                  placeholder="Search by application number, name, or email..."
+                  placeholder={t('admin.searchApplications')}
                   value={filters.search}
                   onChange={(e) => setFilters({...filters, search: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -326,7 +328,7 @@ export default function AdminDashboard() {
         {/* Applications Table */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-medium text-gray-900">Applications</h2>
+            <h2 className="text-lg font-medium text-gray-900">{t('navigation.applications')}</h2>
           </div>
           
           <div className="overflow-x-auto">
@@ -334,22 +336,22 @@ export default function AdminDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Application
+                    {t('admin.applicationNumber')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Applicant
+                    {t('admin.applicantName')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
+                    {t('admin.applicationType')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    {t('admin.currentStatus')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Submitted
+                    {t('admin.submissionDate')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    {t('common.actions')}
                   </th>
                 </tr>
               </thead>

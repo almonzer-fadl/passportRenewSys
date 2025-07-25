@@ -118,8 +118,8 @@ export default function ReviewStep({ formData, updateFormData, errors }) {
         </p>
       </div>
 
-      {/* Application Type */}
-      <ReviewSection title="Application Type" icon="📋">
+                  {/* Application Type */}
+            <ReviewSection title={t('admin.applicationType')} icon="📋">
         <ReviewField label="Type" value={formData.applicationType === 'renewal' ? 'Passport Renewal' : 
                                               formData.applicationType === 'new' ? 'New Passport' :
                                               formData.applicationType === 'replacement' ? 'Passport Replacement' :

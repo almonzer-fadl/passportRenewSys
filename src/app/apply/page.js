@@ -123,12 +123,6 @@ export default function ApplyPage() {
   };
 
   const validateCurrentStep = () => {
-    // TEMPORARILY DISABLED FOR TESTING - Skip all validations
-    setErrors({});
-    return true;
-    
-    // Original validation code (commented out for now)
-    /*
     const currentStepData = visibleSteps.find(step => step.number === currentStep);
     const newErrors = {};
 
@@ -194,26 +188,26 @@ export default function ApplyPage() {
         break;
       
       case 7: // Document Upload
-        if (!formData.documents?.passportPhoto) newErrors.passportPhoto = 'Passport photo is required';
-        if (!formData.documents?.identityDocument) newErrors.identityDocument = 'Identity document is required';
-        if (!formData.documents?.citizenshipDocument) newErrors.citizenshipDocument = 'Proof of citizenship is required';
+        if (!formData.documents?.passportPhotoUrl) newErrors.passportPhoto = 'Passport photo is required';
+        if (!formData.documents?.identityDocumentUrl) newErrors.identityDocument = 'Identity document is required';
+        if (!formData.documents?.citizenshipDocumentUrl) newErrors.citizenshipDocument = 'Proof of citizenship is required';
         
         // Current passport copy required for renewal/replacement/correction
-        if (['renewal', 'replacement', 'correction'].includes(formData.applicationType) && !formData.documents?.currentPassportCopy) {
+        if (['renewal', 'replacement', 'correction'].includes(formData.applicationType) && !formData.documents?.currentPassportCopyUrl) {
           newErrors.currentPassportCopy = 'Current passport copy is required';
         }
         break;
       
-      case 8: // Payment
-        if (!formData.paymentCompleted) {
-          newErrors.payment = 'Payment must be completed before proceeding';
+      case 8: // Review & Submit
+        // Check if all required terms are accepted
+        if (!formData.termsAccepted?.accuracy || !formData.termsAccepted?.terms || !formData.termsAccepted?.biometrics) {
+          newErrors.termsAccepted = 'Please accept all terms and conditions';
         }
         break;
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-    */
   };
 
   const nextStep = () => {

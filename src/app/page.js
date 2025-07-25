@@ -180,20 +180,20 @@ export default function Home() {
         <div>
           <div className="text-2xl font-bold">🇸🇩</div>
           <p className="font-bold">
-            Sudan Passport Renewal System
+            {t('footer.title')}
           </p>
-          <p>Ministry of Interior - Republic of Sudan</p>
+          <p>{t('footer.ministry')}</p>
         </div>
         <div>
           <div className="grid grid-flow-col gap-4">
-            <Link href="/about" className="link link-hover">About</Link>
-            <Link href="/contact" className="link link-hover">Contact</Link>
-            <Link href="/privacy" className="link link-hover">Privacy</Link>
-            <Link href="/terms" className="link link-hover">Terms</Link>
+            <Link href="/about" className="link link-hover">{t('footer.about')}</Link>
+            <Link href="/contact" className="link link-hover">{t('footer.contact')}</Link>
+            <Link href="/privacy" className="link link-hover">{t('footer.privacy')}</Link>
+            <Link href="/terms" className="link link-hover">{t('footer.terms')}</Link>
           </div>
         </div>
         <div>
-          <p>Copyright © 2024 - All rights reserved</p>
+          <p>{t('footer.copyright')}</p>
         </div>
       </footer>
     </div>
