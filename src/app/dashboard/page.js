@@ -142,139 +142,140 @@ export default function Dashboard() {
           </div>
         </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Welcome Section */}
-        <div className="hero bg-gradient-to-r from-primary to-secondary text-primary-content rounded-lg mb-8">
-          <div className="hero-content text-center">
-            <div className="max-w-md">
-              <h1 className="text-4xl font-bold">
-                {t('dashboard.title')}
-              </h1>
-              <p className="py-6">
-                {t('dashboard.description')}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/apply" className="btn btn-accent">
-                  {t('dashboard.newApplication')}
-                </Link>
-                {user?.role === 'admin' && (
-                  <Link href="/admin" className="btn btn-secondary">
-                    {t('admin.dashboard')}
+        <div className="container mx-auto px-4 py-8">
+          {/* Welcome Section */}
+          <div className="hero bg-gradient-to-r from-primary to-secondary text-primary-content rounded-lg mb-8">
+            <div className="hero-content text-center">
+              <div className="max-w-md">
+                <h1 className="text-4xl font-bold">
+                  {t('dashboard.title')}
+                </h1>
+                <p className="py-6">
+                  {t('dashboard.description')}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link href="/apply" className="btn btn-accent">
+                    {t('dashboard.newApplication')}
                   </Link>
-                )}
+                  {user?.role === 'admin' && (
+                    <Link href="/admin" className="btn btn-secondary">
+                      {t('admin.dashboard')}
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="stat bg-base-100 rounded-lg shadow">
-            <div className="stat-figure text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="stat bg-base-100 rounded-lg shadow">
+              <div className="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div className="stat-title">{t('dashboard.totalApplications')}</div>
+              <div className="stat-value text-primary">{stats.total}</div>
             </div>
-            <div className="stat-title">{t('dashboard.totalApplications')}</div>
-            <div className="stat-value text-primary">{stats.total}</div>
-          </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow">
-            <div className="stat-figure text-warning">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-              </svg>
+            <div className="stat bg-base-100 rounded-lg shadow">
+              <div className="stat-figure text-warning">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                </svg>
+              </div>
+              <div className="stat-title">{t('status.draft')}</div>
+              <div className="stat-value text-warning">{stats.draft}</div>
             </div>
-            <div className="stat-title">{t('status.draft')}</div>
-            <div className="stat-value text-warning">{stats.draft}</div>
-          </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow">
-            <div className="stat-figure text-info">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-              </svg>
+            <div className="stat bg-base-100 rounded-lg shadow">
+              <div className="stat-figure text-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                </svg>
+              </div>
+              <div className="stat-title">{t('status.underReview')}</div>
+              <div className="stat-value text-info">{stats.underReview}</div>
             </div>
-            <div className="stat-title">{t('status.underReview')}</div>
-            <div className="stat-value text-info">{stats.underReview}</div>
-          </div>
 
-          <div className="stat bg-base-100 rounded-lg shadow">
-            <div className="stat-figure text-success">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+            <div className="stat bg-base-100 rounded-lg shadow">
+              <div className="stat-figure text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-8 h-8 stroke-current">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div className="stat-title">{t('status.approved')}</div>
+              <div className="stat-value text-success">{stats.approved}</div>
             </div>
-            <div className="stat-title">{t('status.approved')}</div>
-            <div className="stat-value text-success">{stats.approved}</div>
           </div>
-        </div>
 
-        {/* Applications List */}
-        <div className="bg-base-100 rounded-lg shadow">
-          <div className="p-6 border-b border-base-300">
-            <h2 className="text-2xl font-bold">{t('dashboard.myApplications')}</h2>
-          </div>
-          
-          {applications.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <thead>
-                  <tr>
-                    <th>{t('admin.applicationNumber')}</th>
-                    <th>{t('admin.applicationType')}</th>
-                    <th>{t('admin.currentStatus')}</th>
-                    <th>{t('admin.submissionDate')}</th>
-                    <th>{t('common.actions')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {applications.map((application) => (
-                    <tr key={application._id}>
-                      <td>
-                        <div className="font-medium">{application.applicationNumber || 'N/A'}</div>
-                        <div className="text-sm opacity-50">ID: {application._id}</div>
-                      </td>
-                      <td>
-                        <div className="font-medium">
-                          {application.applicationType === 'new' ? t('application.newPassport') :
-                           application.applicationType === 'renewal' ? t('application.renewal') :
-                           application.applicationType === 'replacement' ? t('application.replacement') :
-                           t('application.correction')}
-                        </div>
-                        <div className="text-sm opacity-50">
-                          {application.processingType === 'express' ? t('application.express') : t('application.regular')}
-                        </div>
-                      </td>
-                      <td>
-                        <div className={getStatusBadge(application.status)}>
-                          {getStatusText(application.status)}
-                        </div>
-                      </td>
-                      <td>{formatDate(application.createdAt)}</td>
-                      <td>
-                        <Link 
-                          href={`/apply?id=${application._id}`}
-                          className="btn btn-sm btn-primary"
-                        >
-                          {t('common.view')}
-                        </Link>
-                      </td>
+          {/* Applications List */}
+          <div className="bg-base-100 rounded-lg shadow">
+            <div className="p-6 border-b border-base-300">
+              <h2 className="text-2xl font-bold">{t('dashboard.myApplications')}</h2>
+            </div>
+            
+            {applications.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr>
+                      <th>{t('admin.applicationNumber')}</th>
+                      <th>{t('admin.applicationType')}</th>
+                      <th>{t('admin.currentStatus')}</th>
+                      <th>{t('admin.submissionDate')}</th>
+                      <th>{t('common.actions')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="p-8 text-center">
-              <div className="text-6xl mb-4">📄</div>
-              <h3 className="text-xl font-semibold mb-2">{t('dashboard.noApplications')}</h3>
-              <p className="text-base-content/70 mb-6">{t('dashboard.noApplicationsDesc')}</p>
-              <Link href="/apply" className="btn btn-primary">
-                {t('dashboard.startApplication')}
-              </Link>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {applications.map((application) => (
+                      <tr key={application._id}>
+                        <td>
+                          <div className="font-medium">{application.applicationNumber || 'N/A'}</div>
+                          <div className="text-sm opacity-50">ID: {application._id}</div>
+                        </td>
+                        <td>
+                          <div className="font-medium">
+                            {application.applicationType === 'new' ? t('application.newPassport') :
+                             application.applicationType === 'renewal' ? t('application.renewal') :
+                             application.applicationType === 'replacement' ? t('application.replacement') :
+                             t('application.correction')}
+                          </div>
+                          <div className="text-sm opacity-50">
+                            {application.processingType === 'express' ? t('application.express') : t('application.regular')}
+                          </div>
+                        </td>
+                        <td>
+                          <div className={getStatusBadge(application.status)}>
+                            {getStatusText(application.status)}
+                          </div>
+                        </td>
+                        <td>{formatDate(application.createdAt)}</td>
+                        <td>
+                          <Link 
+                            href={`/apply?id=${application._id}`}
+                            className="btn btn-sm btn-primary"
+                          >
+                            {t('common.view')}
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <div className="text-6xl mb-4">📄</div>
+                <h3 className="text-xl font-semibold mb-2">{t('dashboard.noApplications')}</h3>
+                <p className="text-base-content/70 mb-6">{t('dashboard.noApplicationsDesc')}</p>
+                <Link href="/apply" className="btn btn-primary">
+                  {t('dashboard.startApplication')}
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </AuthGuard>
