@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import AuthGuard from '@/components/auth/AuthGuard';
 import { useAuth } from '@/components/AuthProvider';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -103,8 +105,17 @@ export default function Dashboard() {
         {/* Header */}
         <div className="navbar bg-primary text-primary-content">
           <div className="navbar-start">
-            <Link href="/" className="btn btn-ghost text-xl">
-              🇸🇩 Sudan Passport
+            <Link href="/" className="btn btn-ghost text-xl flex items-center space-x-2">
+              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center overflow-hidden">
+                <Image 
+                  src="/sudan.png" 
+                  alt="Sudan Flag" 
+                  width={24} 
+                  height={24}
+                  className="object-contain"
+                />
+              </div>
+              <span>Sudan Passport</span>
             </Link>
           </div>
                   <div className="navbar-center">

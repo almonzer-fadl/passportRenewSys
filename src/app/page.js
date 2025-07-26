@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useState, useEffect } from 'react';
@@ -32,8 +33,14 @@ export default function Home() {
       <nav className="navbar bg-primary text-primary-content">
         <div className="navbar-start">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-              <span className="text-primary font-bold text-xl">🇸🇩</span>
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center overflow-hidden">
+              <Image 
+                src="/sudan.png" 
+                alt="Sudan Flag" 
+                width={32} 
+                height={32}
+                className="object-contain"
+              />
             </div>
             <div>
               <h1 className="text-xl font-bold">{t('homepage.title')}</h1>
@@ -178,7 +185,15 @@ export default function Home() {
       {/* Footer */}
       <footer className="footer footer-center p-10 bg-neutral text-neutral-content">
         <div>
-          <div className="text-2xl font-bold">🇸🇩</div>
+          <div className="w-12 h-12 mb-4">
+            <Image 
+              src="/sudan.png" 
+              alt="Sudan Flag" 
+              width={48} 
+              height={48}
+              className="object-contain"
+            />
+          </div>
           <p className="font-bold">
             {t('footer.title')}
           </p>

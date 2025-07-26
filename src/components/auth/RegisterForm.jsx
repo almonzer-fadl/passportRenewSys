@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -117,8 +118,14 @@ export default function RegisterForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">🇸🇩</span>
+          <div className="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4 overflow-hidden shadow-lg">
+            <Image 
+              src="/sudan.png" 
+              alt="Sudan Flag" 
+              width={48} 
+              height={48}
+              className="object-contain"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             Create your account

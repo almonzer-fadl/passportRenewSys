@@ -2,7 +2,7 @@
 
 A modern, secure, and efficient digital platform for passport renewal applications, featuring AI-powered validation, real-time processing, and comprehensive government workflow management.
 
-![Sudan Flag](https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/Flag_of_Sudan.svg/320px-Flag_of_Sudan.svg.png)
+![Sudan Flag](./public/sudan.png)
 
 ## 🌟 Key Features
 

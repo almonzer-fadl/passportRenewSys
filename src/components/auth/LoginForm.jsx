@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function LoginForm() {
@@ -50,8 +51,14 @@ export default function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-primary rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">🇸🇩</span>
+          <div className="mx-auto h-16 w-16 bg-white rounded-full flex items-center justify-center mb-4 overflow-hidden shadow-lg">
+            <Image 
+              src="/sudan.png" 
+              alt="Sudan Flag" 
+              width={48} 
+              height={48}
+              className="object-contain"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             Sign in to your account

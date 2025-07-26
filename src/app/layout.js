@@ -18,7 +18,7 @@ export const metadata = {
     locale: 'en_US',
     images: [
       {
-        url: '/images/sudan-flag.png',
+        url: '/sudan.png',
         width: 1200,
         height: 630,
         alt: 'Sudan Passport Services',

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState, useEffect } from 'react';
 
@@ -42,8 +43,18 @@ export default function LanguageSwitcher() {
       aria-label={`Switch to ${locale === 'en' ? 'Arabic' : 'English'}`}
     >
       <span className="flex items-center space-x-2 rtl:space-x-reverse">
-        <span className="text-lg">
-          {locale === 'en' ? '🇸🇩' : '🇺🇸'}
+        <span className="flex items-center justify-center w-6 h-6">
+          {locale === 'en' ? (
+            <Image 
+              src="/sudan.png" 
+              alt="Sudan Flag" 
+              width={24} 
+              height={24}
+              className="object-contain"
+            />
+          ) : (
+            <span className="text-lg">🇺🇸</span>
+          )}
         </span>
         <span className={`transition-opacity ${isToggling ? 'opacity-50' : ''}`}>
           {locale === 'en' ? 'العربية' : 'English'}
