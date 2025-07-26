@@ -42,7 +42,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" dir="ltr" data-theme="sudan">
+    <html lang="en" dir="ltr" data-theme="light">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#D21F3C" />
@@ -52,6 +52,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-title" content="Sudan Passport" />
         <meta name="format-detection" content="telephone=no" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="color-scheme" content="light" />
         
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />

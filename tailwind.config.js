@@ -62,7 +62,6 @@ export default {
         },
       },
       'light',
-      'dark',
     ],
     base: true,
     utils: true,

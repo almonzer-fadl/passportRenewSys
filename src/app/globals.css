@@ -4,14 +4,58 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
+/* Force light mode - prevent dark mode styles */
+:root {
+  color-scheme: light;
+}
+
+html {
+  color-scheme: light !important;
+}
+
+html[data-theme="light"] {
+  color-scheme: light !important;
+}
+
+/* Override any dark mode styles */
+@media (prefers-color-scheme: dark) {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    color-scheme: light !important;
   }
   
   body {
-    background-color: oklch(var(--b1));
-    color: oklch(var(--bc));
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  
+  * {
+    color-scheme: light !important;
+  }
+}
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    color-scheme: light !important;
+  }
+  
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    color-scheme: light !important;
+  }
+  
+  /* Force all form elements to use light mode */
+  input, textarea, select, button {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #d1d5db !important;
+  }
+  
+  input:focus, textarea:focus, select:focus {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #D21F3C !important;
   }
 }
 
@@ -30,15 +74,15 @@
   }
   
   .input-sudan {
-    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20;
+    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20 bg-white text-black;
   }
   
   .textarea-sudan {
-    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20 min-h-24;
+    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20 min-h-24 bg-white text-black;
   }
   
   .select-sudan {
-    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20;
+    @apply border border-gray-300 rounded-lg px-3 py-2 w-full focus:border-sudan-red focus:outline-none focus:ring-2 focus:ring-sudan-red/20 bg-white text-black;
   }
 
   /* Camera and Image Validation */
