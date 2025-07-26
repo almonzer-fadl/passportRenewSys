@@ -99,24 +99,24 @@ export default function AdminDashboard() {
         console.error('Failed to update application status');
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('Error updating application status:', error);
     }
   };
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'draft': { color: 'gray', label: 'Draft' },
-      'submitted': { color: 'blue', label: 'Submitted' },
-      'under_review': { color: 'yellow', label: 'Under Review' },
-      'approved': { color: 'green', label: 'Approved' },
-      'rejected': { color: 'red', label: 'Rejected' },
-      'completed': { color: 'purple', label: 'Completed' }
+      'draft': { color: 'gray', label: t('status.draft') },
+      'submitted': { color: 'blue', label: t('status.submitted') },
+      'under_review': { color: 'yellow', label: t('status.underReview') },
+      'approved': { color: 'green', label: t('status.approved') },
+      'rejected': { color: 'red', label: t('status.rejected') },
+      'completed': { color: 'purple', label: t('status.completed') }
     };
 
     const config = statusConfig[status] || statusConfig['draft'];
     
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+      <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
         ${config.color === 'gray' ? 'bg-gray-100 text-gray-800' : ''}
         ${config.color === 'blue' ? 'bg-blue-100 text-blue-800' : ''}
         ${config.color === 'yellow' ? 'bg-yellow-100 text-yellow-800' : ''}
@@ -131,10 +131,10 @@ export default function AdminDashboard() {
 
   const getTypeBadge = (type) => {
     const typeConfig = {
-      'new': { label: 'New Passport', icon: '📄' },
-      'renewal': { label: 'Renewal', icon: '🔄' },
-      'replacement': { label: 'Replacement', icon: '🔄' },
-      'correction': { label: 'Correction', icon: '✏️' }
+      'new': { label: t('application.newPassport'), icon: '📄' },
+      'renewal': { label: t('application.renewal'), icon: '🔄' },
+      'replacement': { label: t('application.replacement'), icon: '🔄' },
+      'correction': { label: t('application.correction'), icon: '✏️' }
     };
 
     const config = typeConfig[type] || typeConfig['new'];
@@ -146,14 +146,6 @@ export default function AdminDashboard() {
       </span>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-base-200 flex items-center justify-center">
-        <span className="loading loading-spinner loading-lg"></span>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
@@ -231,7 +223,7 @@ export default function AdminDashboard() {
             <div className="p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <span className="text-2xl">👀</span>
+                  <span className="text-2xl">🔍</span>
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
@@ -278,21 +270,23 @@ export default function AdminDashboard() {
 
         {/* Filters */}
         <div className="bg-white shadow rounded-lg mb-6">
-          <div className="p-6">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-gray-900">{t('admin.filterByStatus')}</h2>
+          </div>
+          <div className="px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('admin.currentStatus')}</label>
                 <select
                   value={filters.status}
                   onChange={(e) => setFilters({...filters, status: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="all">All Status</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="under_review">Under Review</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                  <option value="completed">Completed</option>
+                  <option value="all">{t('admin.allStatuses')}</option>
+                  <option value="submitted">{t('status.submitted')}</option>
+                  <option value="under_review">{t('status.underReview')}</option>
+                  <option value="approved">{t('status.approved')}</option>
+                  <option value="rejected">{t('status.rejected')}</option>
                 </select>
               </div>
 
@@ -304,10 +298,10 @@ export default function AdminDashboard() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">{t('admin.allStatuses')}</option>
-                  <option value="new">New Passport</option>
-                  <option value="renewal">Renewal</option>
-                  <option value="replacement">Replacement</option>
-                  <option value="correction">Correction</option>
+                  <option value="new">{t('application.newPassport')}</option>
+                  <option value="renewal">{t('application.renewal')}</option>
+                  <option value="replacement">{t('application.replacement')}</option>
+                  <option value="correction">{t('application.correction')}</option>
                 </select>
               </div>
 
@@ -357,7 +351,7 @@ export default function AdminDashboard() {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {applications.map((application) => (
-                  <tr key={application.id} className="hover:bg-gray-50">
+                  <tr key={application._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
@@ -395,34 +389,34 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => router.push(`/admin/applications/${application.id}`)}
+                          onClick={() => router.push(`/admin/applications/${application._id}`)}
                           className="text-blue-600 hover:text-blue-900"
                         >
-                          Review
+                          {t('admin.reviewApplication')}
                         </button>
                         
                         {application.status === 'submitted' && (
                           <button
-                            onClick={() => updateApplicationStatus(application.id, 'under_review')}
+                            onClick={() => updateApplicationStatus(application._id, 'under_review')}
                             className="text-yellow-600 hover:text-yellow-900"
                           >
-                            Start Review
+                            {t('admin.markUnderReview')}
                           </button>
                         )}
                         
                         {application.status === 'under_review' && (
                           <>
                             <button
-                              onClick={() => updateApplicationStatus(application.id, 'approved')}
+                              onClick={() => updateApplicationStatus(application._id, 'approved')}
                               className="text-green-600 hover:text-green-900"
                             >
-                              Approve
+                              {t('admin.approve')}
                             </button>
                             <button
-                              onClick={() => updateApplicationStatus(application.id, 'rejected')}
+                              onClick={() => updateApplicationStatus(application._id, 'rejected')}
                               className="text-red-600 hover:text-red-900"
                             >
-                              Reject
+                              {t('admin.reject')}
                             </button>
                           </>
                         )}
@@ -436,7 +430,7 @@ export default function AdminDashboard() {
             {applications.length === 0 && (
               <div className="text-center py-12">
                 <span className="text-4xl mb-4 block">📄</span>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No applications found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.noApplications')}</h3>
                 <p className="text-gray-500">No applications match your current filters.</p>
               </div>
             )}

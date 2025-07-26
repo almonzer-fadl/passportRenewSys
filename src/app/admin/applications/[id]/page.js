@@ -2,22 +2,16 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AdminApplicationReview() {
-  // Mock admin session for demo
-  const session = {
-    user: {
-      id: '1',
-      name: 'Admin User',
-      email: 'admin@passport.gov.sd',
-      role: 'admin'
-    }
-  };
-  
+  const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
+  const { t } = useLanguage();
   const [application, setApplication] = useState(null);
-  const [user, setUser] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -29,16 +23,19 @@ export default function AdminApplicationReview() {
       setLoading(true);
       
       // Fetch application details
-      const appResponse = await fetch(`/api/admin/applications/${params.id}`);
+      const appResponse = await fetch(`/api/applications/${params.id}`);
       if (appResponse.ok) {
         const appData = await appResponse.json();
         setApplication(appData.application);
-        setUser(appData.user);
-        setNotes(appData.application.notes || '');
+        setUserData(appData.user);
+        setNotes(appData.application?.notes || '');
+      } else {
+        console.error('Failed to fetch application details');
+        router.push('/admin');
       }
 
       // Fetch documents
-      const docsResponse = await fetch(`/api/admin/applications/${params.id}/documents`);
+      const docsResponse = await fetch(`/api/applications/${params.id}/documents`);
       if (docsResponse.ok) {
         const docsData = await docsResponse.json();
         setDocuments(docsData.documents || []);
@@ -46,22 +43,23 @@ export default function AdminApplicationReview() {
 
     } catch (error) {
       console.error('Error fetching application details:', error);
+      router.push('/admin');
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, router]);
 
   useEffect(() => {
-    if (session?.user?.email === 'demo@passport.gov.sd' && params.id) {
+    if (params.id) {
       fetchApplicationDetails();
     }
-    }, [session, params.id, fetchApplicationDetails]);
+  }, [params.id, fetchApplicationDetails]);
 
   const updateStatus = async (newStatus) => {
     try {
       setUpdating(true);
       
-      const response = await fetch(`/api/admin/applications/${params.id}/status`, {
+      const response = await fetch(`/api/applications/${params.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +83,7 @@ export default function AdminApplicationReview() {
 
   const updateDocumentStatus = async (documentId, status, validationNotes = '') => {
     try {
-      const response = await fetch(`/api/admin/documents/${documentId}/status`, {
+      const response = await fetch(`/api/documents/${documentId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -107,12 +105,12 @@ export default function AdminApplicationReview() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      'draft': { color: 'gray', label: 'Draft' },
-      'submitted': { color: 'blue', label: 'Submitted' },
-      'under_review': { color: 'yellow', label: 'Under Review' },
-      'approved': { color: 'green', label: 'Approved' },
-      'rejected': { color: 'red', label: 'Rejected' },
-      'completed': { color: 'purple', label: 'Completed' }
+      'draft': { color: 'gray', label: t('status.draft') },
+      'submitted': { color: 'blue', label: t('status.submitted') },
+      'under_review': { color: 'yellow', label: t('status.underReview') },
+      'approved': { color: 'green', label: t('status.approved') },
+      'rejected': { color: 'red', label: t('status.rejected') },
+      'completed': { color: 'purple', label: t('status.completed') }
     };
 
     const config = statusConfig[status] || statusConfig['draft'];
@@ -144,29 +142,31 @@ export default function AdminApplicationReview() {
   const InfoField = ({ label, value }) => (
     <div className="grid grid-cols-3 gap-4 py-2">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="text-sm text-gray-900 col-span-2">{value || 'Not provided'}</dd>
+      <dd className="text-sm text-gray-900 col-span-2">{value || t('common.notProvided')}</dd>
     </div>
   );
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-base-200 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <span className="loading loading-spinner loading-lg"></span>
       </div>
     );
   }
 
-  if (!session || session.user.email !== 'demo@passport.gov.sd') {
-    return null;
-  }
-
   if (!application) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <span className="text-4xl mb-4 block">❌</span>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Application not found</h3>
-          <p className="text-gray-500">The requested application could not be found.</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('admin.applicationNotFound')}</h3>
+          <p className="text-gray-500">{t('admin.applicationNotFoundDesc')}</p>
+          <button
+            onClick={() => router.push('/admin')}
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            {t('navigation.backToDashboard')}
+          </button>
         </div>
       </div>
     );
@@ -180,12 +180,12 @@ export default function AdminApplicationReview() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">
-                Application Review: {application.application_number}
+                {t('admin.applicationReview')}: {application.applicationNumber}
               </h1>
               <div className="mt-2 flex items-center space-x-4">
                 {getStatusBadge(application.status)}
                 <span className="text-sm text-gray-500">
-                  Submitted: {new Date(application.created_at).toLocaleDateString()}
+                  {t('admin.submittedDate')}: {new Date(application.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
@@ -193,7 +193,7 @@ export default function AdminApplicationReview() {
               onClick={() => router.push('/admin')}
               className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
             >
-              Back to Dashboard
+              {t('navigation.backToDashboard')}
             </button>
           </div>
         </div>
@@ -204,91 +204,114 @@ export default function AdminApplicationReview() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {/* Application Information */}
-            <InfoSection title="Application Details" icon="📋">
+            <InfoSection title={t('admin.applicationDetails')} icon="📋">
               <dl className="divide-y divide-gray-200">
-                <InfoField label="Application Number" value={application.application_number} />
-                <InfoField label="Application Type" value={
-                  application.application_type === 'new' ? 'New Passport' :
-                  application.application_type === 'renewal' ? 'Passport Renewal' :
-                  application.application_type === 'replacement' ? 'Passport Replacement' :
-                  'Passport Correction'
+                <InfoField label={t('admin.applicationNumber')} value={application.applicationNumber} />
+                <InfoField label={t('admin.applicationType')} value={
+                  application.applicationType === 'new' ? t('application.newPassport') :
+                  application.applicationType === 'renewal' ? t('application.renewal') :
+                  application.applicationType === 'replacement' ? t('application.replacement') :
+                  t('application.correction')
                 } />
-                <InfoField label="Processing Speed" value={
-                  application.processing_speed === 'express' ? 'Express (5-7 days)' : 'Regular (10-15 days)'
+                <InfoField label={t('admin.processingType')} value={
+                  application.processingType === 'express' ? 'Express (5-7 days)' : 'Regular (10-15 days)'
                 } />
-                <InfoField label="Total Fee" value={`$${application.total_fee}`} />
-                <InfoField label="Status" value={getStatusBadge(application.status)} />
+                <InfoField label={t('admin.currentStatus')} value={getStatusBadge(application.status)} />
               </dl>
             </InfoSection>
 
             {/* Applicant Information */}
-            {user && (
-              <InfoSection title="Applicant Information" icon="👤">
+            {userData && (
+              <InfoSection title={t('admin.applicantInformation')} icon="👤">
                 <dl className="divide-y divide-gray-200">
-                  <InfoField label="Full Name" value={`${user.first_name} ${user.middle_name || ''} ${user.last_name}`} />
-                  <InfoField label="Email" value={user.email} />
-                  <InfoField label="Phone" value={user.phone} />
-                  <InfoField label="Date of Birth" value={new Date(user.date_of_birth).toLocaleDateString()} />
-                  <InfoField label="Place of Birth" value={user.place_of_birth} />
-                  <InfoField label="Gender" value={user.gender} />
-                  <InfoField label="Nationality" value={user.nationality} />
-                  <InfoField label="National ID" value={user.national_id} />
-                  <InfoField label="Address" value={`${user.address}, ${user.city}, ${user.state}, ${user.country}`} />
+                  <InfoField label={t('auth.firstName')} value={userData.firstName} />
+                  <InfoField label={t('auth.lastName')} value={userData.lastName} />
+                  <InfoField label={t('auth.email')} value={userData.email} />
+                  <InfoField label={t('auth.phoneNumber')} value={userData.phoneNumber} />
+                  <InfoField label={t('application.nationalId')} value={userData.nationalId} />
+                </dl>
+              </InfoSection>
+            )}
+
+            {/* Personal Information */}
+            {application.personalInfo && (
+              <InfoSection title={t('application.personalInfoTitle')} icon="👤">
+                <dl className="divide-y divide-gray-200">
+                  <InfoField label={t('auth.firstName')} value={application.personalInfo.firstName} />
+                  <InfoField label={t('auth.lastName')} value={application.personalInfo.lastName} />
+                  <InfoField label={t('application.fatherName')} value={application.personalInfo.fatherName} />
+                  <InfoField label={t('application.motherName')} value={application.personalInfo.motherName} />
+                  <InfoField label={t('application.dateOfBirth')} value={application.personalInfo.dateOfBirth ? new Date(application.personalInfo.dateOfBirth).toLocaleDateString() : null} />
+                  <InfoField label={t('application.placeOfBirth')} value={application.personalInfo.placeOfBirth} />
+                  <InfoField label={t('application.gender')} value={application.personalInfo.gender} />
+                  <InfoField label={t('application.nationality')} value={application.personalInfo.nationality} />
+                </dl>
+              </InfoSection>
+            )}
+
+            {/* Contact Information */}
+            {application.contactInfo && (
+              <InfoSection title={t('application.contactInfoTitle')} icon="📞">
+                <dl className="divide-y divide-gray-200">
+                  <InfoField label={t('auth.phoneNumber')} value={application.contactInfo.phoneNumber} />
+                  <InfoField label={t('auth.email')} value={application.contactInfo.email} />
+                  <InfoField label={t('application.street')} value={application.contactInfo.address?.street} />
+                  <InfoField label={t('application.city')} value={application.contactInfo.address?.city} />
+                  <InfoField label={t('application.state')} value={application.contactInfo.address?.state} />
+                  <InfoField label={t('application.country')} value={application.contactInfo.address?.country} />
                 </dl>
               </InfoSection>
             )}
 
             {/* Current Passport (if applicable) */}
-            {['renewal', 'replacement'].includes(application.application_type) && (
-              <InfoSection title="Current Passport Information" icon="📖">
+            {['renewal', 'replacement'].includes(application.applicationType) && application.currentPassport && (
+              <InfoSection title={t('application.currentPassportTitle')} icon="📖">
                 <dl className="divide-y divide-gray-200">
-                  <InfoField label="Passport Number" value={application.current_passport_number} />
-                  <InfoField label="Issue Date" value={application.current_passport_issue_date ? new Date(application.current_passport_issue_date).toLocaleDateString() : null} />
-                  <InfoField label="Expiry Date" value={application.current_passport_expiry_date ? new Date(application.current_passport_expiry_date).toLocaleDateString() : null} />
-                  <InfoField label="Issuing Office" value={application.current_passport_issuing_office} />
-                  <InfoField label="Status" value={application.current_passport_status} />
-                  {application.replacement_reason && (
-                    <InfoField label="Replacement Reason" value={application.replacement_reason} />
-                  )}
+                  <InfoField label={t('application.passportNumber')} value={application.currentPassport.passportNumber} />
+                  <InfoField label={t('application.issueDate')} value={application.currentPassport.issueDate ? new Date(application.currentPassport.issueDate).toLocaleDateString() : null} />
+                  <InfoField label={t('application.expiryDate')} value={application.currentPassport.expiryDate ? new Date(application.currentPassport.expiryDate).toLocaleDateString() : null} />
+                  <InfoField label={t('application.issuingOffice')} value={application.currentPassport.issuingOffice} />
                 </dl>
               </InfoSection>
             )}
 
             {/* Travel Information */}
-            <InfoSection title="Travel Information" icon="✈️">
-              <dl className="divide-y divide-gray-200">
-                <InfoField label="Purpose of Travel" value={application.travel_purpose} />
-                <InfoField label="Intended Countries" value={
-                  application.travel_countries ? JSON.parse(application.travel_countries).join(', ') : null
-                } />
-                <InfoField label="Departure Date" value={application.travel_departure_date ? new Date(application.travel_departure_date).toLocaleDateString() : null} />
-                <InfoField label="Return Date" value={application.travel_return_date ? new Date(application.travel_return_date).toLocaleDateString() : null} />
-              </dl>
-            </InfoSection>
+            {application.travelInfo && (
+              <InfoSection title={t('application.travelInfoTitle')} icon="✈️">
+                <dl className="divide-y divide-gray-200">
+                  <InfoField label={t('application.purposeOfTravel')} value={application.travelInfo.purposeOfTravel} />
+                  <InfoField label={t('application.intendedCountries')} value={
+                    application.travelInfo.intendedCountries ? application.travelInfo.intendedCountries.join(', ') : null
+                  } />
+                  <InfoField label={t('application.departureDate')} value={application.travelInfo.departureDate ? new Date(application.travelInfo.departureDate).toLocaleDateString() : null} />
+                  <InfoField label={t('application.returnDate')} value={application.travelInfo.returnDate ? new Date(application.travelInfo.returnDate).toLocaleDateString() : null} />
+                </dl>
+              </InfoSection>
+            )}
 
             {/* Documents */}
-            <InfoSection title="Document Verification" icon="📄">
+            <InfoSection title={t('application.documentsTitle')} icon="📄">
               {documents.length > 0 ? (
                 <div className="space-y-4">
                   {documents.map((doc) => (
-                    <div key={doc.id} className={`border rounded-lg p-4 ${
-                      doc.validation_status === 'approved' ? 'border-green-200 bg-green-50' :
-                      doc.validation_status === 'rejected' ? 'border-red-200 bg-red-50' :
+                    <div key={doc._id} className={`border rounded-lg p-4 ${
+                      doc.validationStatus === 'approved' ? 'border-green-200 bg-green-50' :
+                      doc.validationStatus === 'rejected' ? 'border-red-200 bg-red-50' :
                       'border-yellow-200 bg-yellow-50'
                     }`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-sm font-medium text-gray-900 capitalize">
-                              {doc.document_type.replace('_', ' ')}
+                              {doc.documentType?.replace('_', ' ') || 'Document'}
                             </h4>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                              ${doc.validation_status === 'approved' ? 'bg-green-100 text-green-800' :
-                                doc.validation_status === 'rejected' ? 'bg-red-100 text-red-800' :
+                              ${doc.validationStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                                doc.validationStatus === 'rejected' ? 'bg-red-100 text-red-800' :
                                 'bg-yellow-100 text-yellow-800'}
                             `}>
-                              {doc.validation_status === 'pending' ? '⏳ Pending' :
-                               doc.validation_status === 'approved' ? '✅ Approved' :
+                              {doc.validationStatus === 'pending' ? '⏳ Pending' :
+                               doc.validationStatus === 'approved' ? '✅ Approved' :
                                '❌ Rejected'}
                             </span>
                           </div>
@@ -296,33 +319,25 @@ export default function AdminApplicationReview() {
                           <div className="grid grid-cols-2 gap-4 text-sm mb-3">
                             <div>
                               <span className="text-gray-500">File: </span>
-                              <span className="text-gray-900">{doc.original_name}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Size: </span>
-                              <span className="text-gray-900">{(doc.size / 1024 / 1024).toFixed(2)} MB</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-500">Type: </span>
-                              <span className="text-gray-900">{doc.mimetype}</span>
+                              <span className="text-gray-900">{doc.originalName || 'Unknown'}</span>
                             </div>
                             <div>
                               <span className="text-gray-500">Uploaded: </span>
-                              <span className="text-gray-900">{new Date(doc.uploaded_at).toLocaleDateString()}</span>
+                              <span className="text-gray-900">{new Date(doc.uploadedAt || doc.createdAt).toLocaleDateString()}</span>
                             </div>
                           </div>
 
-                          {doc.ai_validation_notes && (
+                          {doc.validationNotes && (
                             <div className="bg-gray-100 rounded p-2 mb-3">
                               <p className="text-xs font-medium text-gray-700">Validation Notes:</p>
-                              <p className="text-sm text-gray-600">{doc.ai_validation_notes}</p>
+                              <p className="text-sm text-gray-600">{doc.validationNotes}</p>
                             </div>
                           )}
 
-                          {doc.validation_status === 'pending' && (
+                          {doc.validationStatus === 'pending' && (
                             <div className="flex space-x-2">
                               <button
-                                onClick={() => updateDocumentStatus(doc.id, 'approved')}
+                                onClick={() => updateDocumentStatus(doc._id, 'approved')}
                                 className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
                               >
                                 ✅ Approve
@@ -331,7 +346,7 @@ export default function AdminApplicationReview() {
                                 onClick={() => {
                                   const reason = prompt('Reason for rejection:');
                                   if (reason) {
-                                    updateDocumentStatus(doc.id, 'rejected', reason);
+                                    updateDocumentStatus(doc._id, 'rejected', reason);
                                   }
                                 }}
                                 className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700"
@@ -340,50 +355,10 @@ export default function AdminApplicationReview() {
                               </button>
                             </div>
                           )}
-
-                          {doc.validation_status !== 'pending' && (
-                            <div className="flex items-center text-xs text-gray-500">
-                              <span>Status last updated: {new Date(doc.uploaded_at).toLocaleString()}</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="ml-4">
-                          <button
-                            onClick={() => window.open(`/api/documents/${doc.id}/download`, '_blank')}
-                            className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-                          >
-                            📁 View File
-                          </button>
                         </div>
                       </div>
                     </div>
                   ))}
-                  
-                  {/* Document Summary */}
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mt-4">
-                    <h5 className="text-sm font-medium text-gray-900 mb-2">Document Verification Summary</h5>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">
-                          {documents.filter(d => d.validation_status === 'approved').length}
-                        </div>
-                        <div className="text-gray-600">Approved</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-yellow-600">
-                          {documents.filter(d => d.validation_status === 'pending').length}
-                        </div>
-                        <div className="text-gray-600">Pending</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-red-600">
-                          {documents.filter(d => d.validation_status === 'rejected').length}
-                        </div>
-                        <div className="text-gray-600">Rejected</div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -398,7 +373,7 @@ export default function AdminApplicationReview() {
           <div className="lg:col-span-1">
             {/* Status Actions */}
             <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Status Actions</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.statusActions')}</h3>
               
               <div className="space-y-3">
                 {application.status === 'submitted' && (
@@ -407,7 +382,7 @@ export default function AdminApplicationReview() {
                     disabled={updating}
                     className="w-full bg-yellow-600 text-white py-2 px-4 rounded-md hover:bg-yellow-700 disabled:opacity-50"
                   >
-                    Start Review
+                    {t('admin.markUnderReview')}
                   </button>
                 )}
                 
@@ -418,14 +393,14 @@ export default function AdminApplicationReview() {
                       disabled={updating}
                       className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
                     >
-                      Approve Application
+                      {t('admin.approve')}
                     </button>
                     <button
                       onClick={() => updateStatus('rejected')}
                       disabled={updating}
                       className="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 disabled:opacity-50"
                     >
-                      Reject Application
+                      {t('admin.reject')}
                     </button>
                   </>
                 )}
@@ -436,7 +411,7 @@ export default function AdminApplicationReview() {
                     disabled={updating}
                     className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50"
                   >
-                    Mark as Completed
+                    {t('status.completed')}
                   </button>
                 )}
               </div>
@@ -444,27 +419,27 @@ export default function AdminApplicationReview() {
 
             {/* Review Notes */}
             <div className="bg-white shadow rounded-lg p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Review Notes</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">{t('admin.reviewNotes')}</h3>
               
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Internal Notes
+                    {t('admin.notes')}
                   </label>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add review notes..."
+                    placeholder={t('admin.addNotes')}
                   />
                 </div>
                 
-                {application.reviewed_at && (
+                {application.reviewedAt && (
                   <div className="text-sm text-gray-500">
-                    <p>Last reviewed: {new Date(application.reviewed_at).toLocaleString()}</p>
-                    {application.reviewed_by && (
-                      <p>Reviewed by: {application.reviewed_by}</p>
+                    <p>Last reviewed: {new Date(application.reviewedAt).toLocaleString()}</p>
+                    {application.reviewedBy && (
+                      <p>Reviewed by: {application.reviewedBy}</p>
                     )}
                   </div>
                 )}

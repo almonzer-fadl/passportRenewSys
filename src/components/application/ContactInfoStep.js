@@ -89,14 +89,14 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
     return statesByCountry[country] || [];
   };
 
-  const selectedCountry = formData.contactInfo.address.country;
+  const selectedCountry = formData.contactInfo?.address?.country || '';
   const availableStates = getStatesByCountry(selectedCountry);
 
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('application.contactInfoTitle')}</h2>
-        <p className="text-gray-600">Provide your current contact details and residential address.</p>
+        <p className="text-gray-600">{t('application.contactInfoDesc')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -109,7 +109,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
             type="tel"
             id="phoneNumber"
             name="phoneNumber"
-            value={formData.contactInfo.phoneNumber}
+            value={formData.contactInfo?.phoneNumber || ''}
             onChange={handlePhoneChange}
             placeholder="+1234567890"
             className={`
@@ -117,12 +117,12 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               ${errors.phoneNumber ? 'border-red-300' : 'border-gray-300'}
             `}
           />
-          <p className="mt-1 text-xs text-gray-500">International format: +[country code][number]</p>
+          <p className="mt-1 text-xs text-gray-500">{t('application.phoneFormat')}</p>
           {errors.phoneNumber && (
             <p className="mt-1 text-sm text-red-600">{errors.phoneNumber}</p>
           )}
-          {formData.contactInfo.phoneNumber && !validatePhoneNumber(formData.contactInfo.phoneNumber) && (
-            <p className="mt-1 text-sm text-red-600">Please enter a valid international phone number</p>
+          {formData.contactInfo?.phoneNumber && !validatePhoneNumber(formData.contactInfo.phoneNumber) && (
+            <p className="mt-1 text-sm text-red-600">{t('validation.invalidPhone')}</p>
           )}
         </div>
 
@@ -135,7 +135,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
             type="email"
             id="email"
             name="email"
-            value={formData.contactInfo.email}
+            value={formData.contactInfo?.email || ''}
             onChange={(e) => handleChange('email', e.target.value.toLowerCase())}
             placeholder="your.email@example.com"
             className={`
@@ -146,15 +146,15 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           {errors.email && (
             <p className="mt-1 text-sm text-red-600">{errors.email}</p>
           )}
-          {formData.contactInfo.email && !validateEmail(formData.contactInfo.email) && (
-            <p className="mt-1 text-sm text-red-600">Please enter a valid email address</p>
+          {formData.contactInfo?.email && !validateEmail(formData.contactInfo.email) && (
+            <p className="mt-1 text-sm text-red-600">{t('validation.invalidEmail')}</p>
           )}
         </div>
       </div>
 
       {/* Address Section */}
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Residential Address</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">{t('application.residentialAddress')}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Country - First so it can control state options */}
@@ -165,7 +165,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
             <select
               id="country"
               name="country"
-              value={formData.contactInfo.address.country}
+              value={selectedCountry}
               onChange={(e) => {
                 handleAddressChange('country', e.target.value);
                 // Clear state when country changes
@@ -176,7 +176,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
                 ${errors.country ? 'border-red-300' : 'border-gray-300'}
               `}
             >
-              <option value="">Select country</option>
+              <option value="">{t('application.selectCountry')}</option>
               {countries.map((country) => (
                 <option key={country} value={country}>
                   {country}
@@ -197,9 +197,9 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               id="street"
               name="street"
               rows={3}
-              value={formData.contactInfo.address.street}
+              value={formData.contactInfo?.address?.street || ''}
               onChange={(e) => handleAddressChange('street', e.target.value)}
-              placeholder="House number, street name, neighborhood"
+              placeholder={t('application.streetPlaceholder')}
               className={`
                 mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                 ${errors.street ? 'border-red-300' : 'border-gray-300'}
@@ -219,9 +219,9 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               type="text"
               id="city"
               name="city"
-              value={formData.contactInfo.address.city}
+              value={formData.contactInfo?.address?.city || ''}
               onChange={(e) => handleAddressChange('city', e.target.value)}
-              placeholder="Enter city or town"
+              placeholder={t('application.cityPlaceholder')}
               className={`
                 mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                 ${errors.city ? 'border-red-300' : 'border-gray-300'}
@@ -241,14 +241,14 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               <select
                 id="state"
                 name="state"
-                value={formData.contactInfo.address.state}
+                value={formData.contactInfo?.address?.state || ''}
                 onChange={(e) => handleAddressChange('state', e.target.value)}
                 className={`
                   mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                   ${errors.state ? 'border-red-300' : 'border-gray-300'}
                 `}
               >
-                <option value="">Select state/province</option>
+                <option value="">{t('application.selectState')}</option>
                 {availableStates.map((state) => (
                   <option key={state} value={state}>
                     {state}
@@ -260,9 +260,9 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
                 type="text"
                 id="state"
                 name="state"
-                value={formData.contactInfo.address.state}
+                value={formData.contactInfo?.address?.state || ''}
                 onChange={(e) => handleAddressChange('state', e.target.value)}
-                placeholder="Enter state, province, or region"
+                placeholder={t('application.statePlaceholder')}
                 className={`
                   mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                   ${errors.state ? 'border-red-300' : 'border-gray-300'}
@@ -283,9 +283,9 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
               type="text"
               id="postalCode"
               name="postalCode"
-              value={formData.contactInfo.address.postalCode}
+              value={formData.contactInfo?.address?.postalCode || ''}
               onChange={(e) => handleAddressChange('postalCode', e.target.value)}
-              placeholder="Enter postal/ZIP code"
+              placeholder={t('application.postalCodePlaceholder')}
               className={`
                 mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
                 ${errors.postalCode ? 'border-red-300' : 'border-gray-300'}
@@ -300,17 +300,17 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
 
       {/* Alternative Contact Method */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-800 mb-3">Alternative Contact Information (Optional)</h4>
+        <h4 className="text-sm font-medium text-gray-800 mb-3">{t('application.alternativeContact')}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label htmlFor="alternativePhone" className="block text-sm font-medium text-gray-700">
-              Alternative Phone Number
+              {t('application.alternativePhone')}
             </label>
             <input
               type="tel"
               id="alternativePhone"
               name="alternativePhone"
-              value={formData.contactInfo.alternativePhone || ''}
+              value={formData.contactInfo?.alternativePhone || ''}
               onChange={(e) => handleChange('alternativePhone', formatPhoneNumber(e.target.value))}
               placeholder="+1234567890"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -318,13 +318,13 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
           </div>
           <div>
             <label htmlFor="alternativeEmail" className="block text-sm font-medium text-gray-700">
-              Alternative Email
+              {t('application.alternativeEmail')}
             </label>
             <input
               type="email"
               id="alternativeEmail"
               name="alternativeEmail"
-              value={formData.contactInfo.alternativeEmail || ''}
+              value={formData.contactInfo?.alternativeEmail || ''}
               onChange={(e) => handleChange('alternativeEmail', e.target.value.toLowerCase())}
               placeholder="alternative@example.com"
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
@@ -335,12 +335,12 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
 
       {/* Communication Preferences */}
       <div>
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Preferred Communication Method *</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">{t('application.preferredCommunication')} *</h4>
         <div className="space-y-3">
           {[
-            { value: 'email', label: 'Email notifications' },
-            { value: 'sms', label: 'SMS text messages' },
-            { value: 'both', label: 'Both email and SMS' }
+            { value: 'email', label: t('application.emailNotifications') },
+            { value: 'sms', label: t('application.smsNotifications') },
+            { value: 'both', label: t('application.bothNotifications') }
           ].map((option) => (
             <div key={option.value} className="flex items-center">
               <input
@@ -348,7 +348,7 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
                 name="preferredCommunication"
                 type="radio"
                 value={option.value}
-                checked={formData.contactInfo.preferredCommunication === option.value}
+                checked={formData.contactInfo?.preferredCommunication === option.value}
                 onChange={(e) => handleChange('preferredCommunication', e.target.value)}
                 className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
               />
@@ -372,14 +372,14 @@ export default function ContactInfoStep({ formData, updateFormData, errors }) {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">Important Contact Information</h3>
+            <h3 className="text-sm font-medium text-yellow-800">{t('application.importantContactInfo')}</h3>
             <div className="mt-2 text-sm text-yellow-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Ensure your phone number is active and can receive SMS messages</li>
-                <li>Check your email regularly for application status updates</li>
-                <li>You will be contacted when your passport is ready for collection</li>
-                <li>Updates about processing delays or requirements will be sent to your preferred contact method</li>
-                <li>For international residents, provide a reliable local contact method</li>
+                <li>{t('application.contactInfoNote1')}</li>
+                <li>{t('application.contactInfoNote2')}</li>
+                <li>{t('application.contactInfoNote3')}</li>
+                <li>{t('application.contactInfoNote4')}</li>
+                <li>{t('application.contactInfoNote5')}</li>
               </ul>
             </div>
           </div>
